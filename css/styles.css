@@ -1556,6 +1556,14 @@ img, svg {
   line-height: var(--line-height-tight);
 }
 
+.page-header .page-title svg {
+  width: 22px;
+  height: 22px;
+  color: var(--color-primary);
+  stroke-width: 2.25px;
+  flex-shrink: 0;
+}
+
 .page-header .page-subtitle {
   font-size: var(--font-size-sm);
   color: var(--color-text-secondary);
@@ -2043,7 +2051,6 @@ img, svg {
   border-radius: var(--radius-full);
   border: 1px solid #86EFAC;
 }
-
 .online-dot {
   width: 6px;
   height: 6px;
@@ -2053,14 +2060,17 @@ img, svg {
 
 .widgets-container {
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: minmax(0, 1fr);
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
   gap: var(--space-6);
   margin-top: var(--space-6);
 }
 
 @media (min-width: 900px) {
   .widgets-container {
-    grid-template-columns: 2fr 1fr;
+    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
   }
 }
 
@@ -2068,10 +2078,14 @@ img, svg {
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg); /* 18px */
-  padding: 24px; /* Consistent 24px padding */
-  box-shadow: var(--shadow-sm);
   display: flex;
   flex-direction: column;
+  overflow: hidden;
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+  padding: 24px; /* Consistent 24px padding */
+  box-shadow: var(--shadow-sm);
   gap: var(--space-4);
   transition: box-shadow var(--transition-base), transform var(--transition-base);
 }
@@ -2122,6 +2136,78 @@ img, svg {
   border-color: var(--color-primary-muted);
   color: var(--color-primary);
   transform: translateY(-1px);
+}
+
+/* -- Watchlist Responsive Row Styles -- */
+.watchlist-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  cursor: pointer;
+  border-bottom: 1px solid var(--color-border-light);
+  transition: background-color var(--transition-fast);
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+}
+.watchlist-row:hover {
+  background-color: var(--color-surface-hover);
+}
+.watchlist-row:last-child {
+  border-bottom: none;
+}
+.watchlist-row-badge {
+  flex-shrink: 0;
+  width: 60px;
+}
+.watchlist-row-info {
+  flex: 1;
+  min-width: 0;
+  padding-right: 8px;
+}
+.watchlist-row-title {
+  font-weight: 500;
+  font-size: 13px;
+  color: var(--color-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.watchlist-row-subtitle {
+  font-size: 11px;
+  color: var(--color-text-tertiary);
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.watchlist-row-meta {
+  flex-shrink: 0;
+  text-align: right;
+  white-space: nowrap;
+}
+.watchlist-row-days {
+  font-weight: 600;
+  font-size: 12px;
+}
+
+@media (max-width: 480px) {
+  .watchlist-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 12px;
+  }
+  .watchlist-row-info {
+    padding-right: 0;
+    width: 100%;
+  }
+  .watchlist-row-meta {
+    text-align: left;
+    width: 100%;
+    margin-top: 2px;
+  }
 }
 
 /* -- SaaS Drawer, Dot Dropdown & Selection Toolbar -- */
@@ -2645,6 +2731,7 @@ img, svg {
   width: 18px;
   height: 18px;
   stroke: currentColor;
+  flex-shrink: 0;
 }
 .settings-nav-btn:hover {
   background: var(--color-surface-alt);
@@ -2679,6 +2766,8 @@ img, svg {
     display: none;
   }
   .settings-nav-btn {
+    display: inline-flex;
+    align-items: center;
     white-space: nowrap;
     width: auto;
     padding: var(--space-2) var(--space-3);

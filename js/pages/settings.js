@@ -173,7 +173,9 @@ const SettingsPage = (() => {
     container.innerHTML = `
       <div class="page-header" style="margin-bottom:var(--space-6)">
         <div>
-          <h1 class="page-title">School Information</h1>
+          <h1 class="page-title" style="display:flex;align-items:center;gap:10px">
+            ${Components.icon('user') || ''} School Information
+          </h1>
           <p class="page-subtitle">Configure primary organization details, facility name, and foundational system defaults.</p>
         </div>
       </div>
@@ -248,7 +250,9 @@ const SettingsPage = (() => {
     container.innerHTML = `
       <div class="page-header" style="margin-bottom:var(--space-6)">
         <div>
-          <h1 class="page-title">Appearance & Theme</h1>
+          <h1 class="page-title" style="display:flex;align-items:center;gap:10px">
+            ${Components.icon('palette') || ''} Appearance & Theme
+          </h1>
           <p class="page-subtitle">Choose between light mode or sleek dark themes.</p>
         </div>
       </div>
@@ -279,7 +283,9 @@ const SettingsPage = (() => {
     container.innerHTML = `
       <div class="page-header" style="margin-bottom:var(--space-6)">
         <div>
-          <h1 class="page-title">Backup & Restore</h1>
+          <h1 class="page-title" style="display:flex;align-items:center;gap:10px">
+            ${Components.icon('download') || ''} Backup & Restore
+          </h1>
           <p class="page-subtitle">Export or import your complete ICS Tracker database securely.</p>
         </div>
       </div>
@@ -396,7 +402,9 @@ const SettingsPage = (() => {
     container.innerHTML = `
       <div class="page-header" style="margin-bottom:var(--space-6)">
         <div>
-          <h1 class="page-title">Maintenance</h1>
+          <h1 class="page-title" style="display:flex;align-items:center;gap:10px">
+            ${Components.icon('cpu') || ''} Maintenance
+          </h1>
           <p class="page-subtitle">Keep your database optimized and running smoothly.</p>
         </div>
       </div>
@@ -505,7 +513,9 @@ const SettingsPage = (() => {
     container.innerHTML = `
       <div class="page-header" style="margin-bottom:var(--space-6)">
         <div>
-          <h1 class="page-title">Diagnostics & Storage</h1>
+          <h1 class="page-title" style="display:flex;align-items:center;gap:10px">
+            ${Components.icon('grid') || ''} Diagnostics & Storage
+          </h1>
           <p class="page-subtitle">Monitor system health, connection status, and storage utilization.</p>
         </div>
       </div>
@@ -542,7 +552,9 @@ const SettingsPage = (() => {
     container.innerHTML = `
       <div class="page-header" style="margin-bottom:var(--space-6)">
         <div>
-          <h1 class="page-title">Help Center</h1>
+          <h1 class="page-title" style="display:flex;align-items:center;gap:10px">
+            ${Components.icon('alert') || ''} Help Center
+          </h1>
           <p class="page-subtitle">Access documentation, keyboard shortcuts, and system workflows.</p>
         </div>
       </div>
@@ -605,7 +617,9 @@ const SettingsPage = (() => {
       </style>
       <div class="page-header" style="margin-bottom:var(--space-6)">
         <div>
-          <h1 class="page-title">Update Logs</h1>
+          <h1 class="page-title" style="display:flex;align-items:center;gap:10px">
+            ${Components.icon('list') || ''} Update Logs
+          </h1>
           <p class="page-subtitle">Review system versions, bug fixes, and feature releases.</p>
         </div>
       </div>
@@ -623,6 +637,10 @@ const SettingsPage = (() => {
               <h4 class="timeline-title">v1.2.0 <span class="timeline-date">July 2026 (Current)</span></h4>
               <ul class="timeline-list">
                 <li><strong>Major Update:</strong> Unified the right panel design system (Inspector Cards, Quick Action segmented toolbars).</li>
+                <li><strong>Feature:</strong> Integrated matching SVG icons next to all settings page titles for a richer, more polished desktop-grade design.</li>
+                <li><strong>Fix:</strong> Prevented Settings navigation button icons from squishing and disappearing on mobile devices.</li>
+                <li><strong>UX Enhancement:</strong> Redesigned the Dashboard Watchlist row layout to stack vertically on mobile screens to prevent overflow and ensure readability.</li>
+                <li><strong>Fix:</strong> Repaired the dashboard widgets column layout to properly stack vertically on mobile (below 900px) instead of remaining squished side-by-side.</li>
                 <li><strong>UX Enhancement:</strong> Completely hid generic OS scrollbars application-wide for a seamless flat aesthetic.</li>
                 <li><strong>Theming:</strong> Upgraded the dark mode top navigation bar to use a proper glass-morphism translucent dark slate backdrop.</li>
                 <li><strong>Fix:</strong> Repaired mobile Z-Index stacking bugs where the overlay backdrop would accidentally block sidebar inputs.</li>
@@ -712,7 +730,9 @@ const SettingsPage = (() => {
     container.innerHTML = `
       <div class="page-header" style="margin-bottom:var(--space-6)">
         <div>
-          <h1 class="page-title">Developer Panel</h1>
+          <h1 class="page-title" style="display:flex;align-items:center;gap:10px">
+            ${Components.icon('edit') || ''} Developer Panel
+          </h1>
           <p class="page-subtitle">Administrative developer tools for staging validation.</p>
         </div>
       </div>

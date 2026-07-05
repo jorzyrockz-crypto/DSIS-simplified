@@ -247,17 +247,7 @@ const DashboardPage = (() => {
 
       watchlistItems.forEach((entry, idx) => {
         const row = document.createElement('div');
-        row.style.display = 'flex';
-        row.style.alignItems = 'center';
-        row.style.gap = '12px';
-        row.style.padding = '12px 16px';
-        row.style.cursor = 'pointer';
-        row.style.borderBottom = idx === watchlistItems.length - 1 ? 'none' : '1px solid var(--color-border-light)';
-        
-        // Hover effect setup
-        row.style.transition = 'background-color var(--transition-fast)';
-        row.addEventListener('mouseenter', () => row.style.backgroundColor = 'var(--color-surface-hover)');
-        row.addEventListener('mouseleave', () => row.style.backgroundColor = 'transparent');
+        row.className = 'watchlist-row';
         
         let statusBadge = '';
         const isExpired = entry.rul.status === 'Expired';
@@ -274,19 +264,19 @@ const DashboardPage = (() => {
         const icsNo = Utils.escapeHtml(entry.record.icsNumber);
 
         row.innerHTML = `
-          <div style="flex-shrink:0;width:60px">
+          <div class="watchlist-row-badge">
             ${statusBadge}
           </div>
-          <div style="flex:1;min-width:0;padding-right:8px">
-            <div style="font-weight:500;font-size:13px;color:var(--color-text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+          <div class="watchlist-row-info">
+            <div class="watchlist-row-title">
               ${Utils.escapeHtml(entry.item.description)}
             </div>
-            <div style="font-size:11px;color:var(--color-text-tertiary);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+            <div class="watchlist-row-subtitle">
               ICS: ${icsNo} &bull; ${invNo}
             </div>
           </div>
-          <div style="flex-shrink:0;text-align:right;white-space:nowrap;">
-            <div style="font-weight:600;font-size:12px;color:${statusColor}">${daysText}</div>
+          <div class="watchlist-row-meta">
+            <div class="watchlist-row-days" style="color:${statusColor}">${daysText}</div>
           </div>
         `;
         
