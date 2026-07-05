@@ -491,6 +491,13 @@ function renderPage(hash) {
   const pageModule = module();
   pageModule.render(workspace, contextBody);
 
+  // Toggle layout-specific workspace classes
+  if (hash === '#settings') {
+    workspace.classList.add('settings-view');
+  } else {
+    workspace.classList.remove('settings-view');
+  }
+
   // Update chrome
   setHeaderTitle(meta.title);
   setContextTitle(meta.contextTitle);

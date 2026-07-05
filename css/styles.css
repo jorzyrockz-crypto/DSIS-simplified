@@ -2697,13 +2697,22 @@ img, svg {
   display: flex;
   gap: var(--space-8);
   align-items: flex-start;
-  margin-top: var(--space-4);
+  margin-top: 0;
 }
 .settings-sidebar {
   width: 240px;
   flex-shrink: 0;
-  position: sticky;
-  top: 100px; /* Offset for header */
+  position: relative;
+  top: 0;
+  margin-top: 0;
+}
+.settings-sidebar .page-header, 
+h1.page-title {
+  margin-top: 0;
+  padding-top: 0;
+}
+#workspace.settings-view {
+  padding-top: 8px;
 }
 .settings-nav {
   display: flex;
