@@ -2189,6 +2189,16 @@ img, svg {
     padding-right: 0;
     width: 100%;
   }
+  .watchlist-row-title {
+    white-space: normal;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+  }
+  .watchlist-row-subtitle {
+    white-space: normal;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+  }
   .watchlist-row-meta {
     text-align: left;
     width: 100%;

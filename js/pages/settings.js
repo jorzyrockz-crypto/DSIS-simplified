@@ -639,6 +639,8 @@ const SettingsPage = (() => {
                 <li><strong>Major Update:</strong> Unified the right panel design system (Inspector Cards, Quick Action segmented toolbars).</li>
                 <li><strong>Feature:</strong> Integrated matching SVG icons next to all settings page titles for a richer, more polished desktop-grade design.</li>
                 <li><strong>Fix:</strong> Repaired sidebar collapsing behavior on tablets (768px - 1024px) to allow manual toggling and proper orientation auto-rotation updates.</li>
+                <li><strong>Fix:</strong> Changed PWA orientation to "any" in manifest.json to allow landscape mode and proper auto-rotation on tablets.</li>
+                <li><strong>UX Enhancement:</strong> Allowed long asset descriptions in the watchlist to wrap on mobile devices rather than getting truncated.</li>
                 <li><strong>Fix:</strong> Prevented Settings navigation button icons from squishing and disappearing on mobile devices.</li>
                 <li><strong>UX Enhancement:</strong> Redesigned the Dashboard Watchlist row layout to stack vertically on mobile screens to prevent overflow and ensure readability.</li>
                 <li><strong>Fix:</strong> Repaired the dashboard widgets column layout to properly stack vertically on mobile (below 900px) instead of remaining squished side-by-side.</li>
