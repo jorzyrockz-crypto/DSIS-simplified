@@ -636,7 +636,9 @@ const SettingsPage = (() => {
               <div class="timeline-dot active"></div>
               <h4 class="timeline-title">v1.2.0 <span class="timeline-date">July 2026 (Current)</span></h4>
               <ul class="timeline-list">
-                <li><strong>Major Update:</strong> Unified the right panel design system (Inspector Cards, Quick Action segmented toolbars).</li>
+                <li><strong>Major Update:</strong> Refactored the Developer Panel to use a clean grid layout, staging badge indicator, and a custom dark-theme JSON syntax viewer.</li>
+                <li><strong>UX Enhancement:</strong> Repositioned the sidebar notification badge to float absolutely over the icon for better visual alignment.</li>
+                <li><strong>Fix:</strong> Removed the legacy online/offline indicator from the header actions bar.</li>
                 <li><strong>Feature:</strong> Integrated matching SVG icons next to all settings page titles for a richer, more polished desktop-grade design.</li>
                 <li><strong>Fix:</strong> Repaired sidebar collapsing behavior on tablets (768px - 1024px) to allow manual toggling and proper orientation auto-rotation updates.</li>
                 <li><strong>Fix:</strong> Resolved Settings vertical alignment displacement (184px gap) by removing sidebar sticky offsets and layout margins.</li>
@@ -732,31 +734,65 @@ const SettingsPage = (() => {
 
   /* ── Tab: Developer Panel (Hidden) ── */
   function _renderDeveloperTab(container) {
+    const sliceData = _allRecords.slice(0, 3);
+    const highlightedJson = JSON.stringify(sliceData, null, 2)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"([^"]+)":/g, '<span style="color:#fbbf24">"$1"</span>:')
+      .replace(/:\s*("[^"]*")/g, ': <span style="color:#34d399">$1</span>')
+      .replace(/:\s*(\d+(\.\d+)?)/g, ': <span style="color:#f472b6">$1</span>');
+
     container.innerHTML = `
-      <div class="page-header" style="margin-bottom:var(--space-6)">
-        <div>
-          <h1 class="page-title" style="display:flex;align-items:center;gap:10px">
-            ${Components.icon('edit') || ''} Developer Panel
-          </h1>
-          <p class="page-subtitle">Administrative developer tools for staging validation.</p>
+      <div class="page-header" style="margin-bottom:var(--space-8)">
+        <div style="display:flex; align-items:flex-start; justify-content:space-between; width:100%">
+          <div>
+            <h1 class="page-title" style="display:flex; align-items:center; gap:12px; font-size: 24px; font-weight: 700; margin:0">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a2 2 0 0 1 2.83 0l.3.3a2 2 0 0 1 0 2.83l-3.77 3.77a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a2 2 0 0 1 2.83 0l.3.3a2 2 0 0 1 0 2.83l-3.77 3.77a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a2 2 0 0 1 2.83 0l.3.3a2 2 0 0 1 0 2.83l-3.77 3.77a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0"></path><path d="m10 14-2.7 2.7a2 2 0 0 0 0 2.83l.3.3a2 2 0 0 0 2.83 0L13 17"></path><path d="m6.3 14.7-3.8 3.8a2 2 0 0 0 0 2.8l.3.3a2 2 0 0 0 2.8 0l3.8-3.8"></path><path d="M13 3.7 3.7 13"></path></svg>
+              Developer Panel
+            </h1>
+            <p class="page-subtitle" style="color:var(--color-text-secondary); margin-top:4px">Advanced administrative tools for system debugging and staging validation.</p>
+          </div>
+          <div style="background:var(--color-warning-light); color:var(--color-warning); padding:6px 12px; border-radius:var(--radius-md); font-size:12px; font-weight:600; border:1px solid var(--color-warning-light)">
+            Staging Mode Active
+          </div>
         </div>
       </div>
-      <div style="display:grid;grid-template-columns:1fr;gap:var(--space-6);max-width:650px">
-        <div class="review-block" style="margin:0">
-          <div class="review-block-title">Database Inspection & Testing</div>
-          <p class="form-hint" style="margin-bottom:var(--space-3)">Administrative developer triggers to seed mock entries for staging validation.</p>
-          <div style="display:flex;gap:8px">
-            <button class="btn btn-secondary btn-sm" id="btn-dev-populate">Populate Mock Data</button>
-            <button class="btn btn-secondary btn-sm" id="btn-dev-seed">Seed 20-Year Demo Data (250+ entries)</button>
-            <button class="btn btn-ghost btn-sm" id="btn-dev-wipe" style="color:var(--color-danger)">Wipe Database</button>
+
+      <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap:var(--space-6);">
+        <!-- Data Management Card -->
+        <div class="review-block" style="margin:0; border:1px solid var(--color-border); background:var(--color-surface); padding:var(--space-5); display:flex; flex-direction:column; gap:var(--space-4)">
+          <div>
+            <div class="review-block-title" style="font-size:16px; font-weight:600; margin-bottom:4px">Database Operations</div>
+            <p class="form-hint">Seed or clear mock data to simulate various system states.</p>
+          </div>
+          
+          <div style="display:grid; grid-template-columns:1fr; gap:10px">
+            <button class="btn btn-secondary" style="width:100%; justify-content:center" id="btn-dev-populate">
+              Populate Mock Data
+            </button>
+            <button class="btn btn-secondary" style="width:100%; justify-content:center" id="btn-dev-seed">
+              Seed 20-Year Dataset
+            </button>
+            <div style="border-top:1px solid var(--color-border); margin:8px 0; padding-top:12px">
+               <button class="btn btn-ghost" style="width:100%; justify-content:center; color:var(--color-danger); border:1px dashed var(--color-danger-light)" id="btn-dev-wipe">
+                Danger: Wipe Database
+              </button>
+            </div>
           </div>
         </div>
 
-        <div class="review-block" style="margin:0">
-          <div class="review-block-title">Raw Database Records Viewer</div>
-          <div style="max-height:250px;overflow-y:auto;background:var(--color-sidebar-bg);color:#A8B3CF;padding:var(--space-3);border-radius:var(--radius-md);font-family:monospace;font-size:10px">
-            <pre>${JSON.stringify(_allRecords.slice(0, 3), null, 2)}</pre>
-            ${_allRecords.length > 3 ? `<div>... and ${_allRecords.length - 3} more records</div>` : ''}
+        <!-- State Inspector Card -->
+        <div class="review-block" style="margin:0; border:1px solid var(--color-border); background:var(--color-surface); padding:var(--space-5)">
+          <div class="review-block-title" style="font-size:16px; font-weight:600; margin-bottom:4px">Raw Database Records</div>
+          <div style="position:relative; margin-top:12px">
+            <div style="height:280px; overflow-y:auto; background:#1e293b; color:#94a3b8; padding:var(--space-4); border-radius:var(--radius-lg); font-family:'Fira Code', 'Courier New', monospace; font-size:11px; line-height:1.5">
+              <pre style="margin:0"><code style="color:#38bdf8">JSON</code> DATA_STREAM = ${highlightedJson}
+              ${_allRecords.length > 3 ? `<div style="color:#94a3b8; margin-top:8px">... and ${_allRecords.length - 3} more records</div>` : ''}</pre>
+            </div>
+            <div style="position:absolute; bottom:12px; right:12px; background:rgba(255,255,255,0.1); padding:4px 8px; border-radius:4px; font-size:9px; color:white">
+              UTF-8 | READ-ONLY
+            </div>
           </div>
         </div>
       </div>

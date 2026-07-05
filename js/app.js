@@ -166,15 +166,7 @@ function buildHeader() {
   const actions = document.createElement('div');
   actions.className = 'header-actions';
 
-  // Online/offline indicator (hidden on small screens)
-  const onlineIndicator = document.createElement('div');
-  onlineIndicator.id = 'online-indicator';
-  onlineIndicator.className = AppState.onlineStatus ? 'online-badge' : 'offline-badge';
-  onlineIndicator.innerHTML = AppState.onlineStatus
-    ? `<span class="online-dot"></span> Online`
-    : `<span class="offline-dot"></span> Offline`;
-  onlineIndicator.style.cssText = '@media(max-width:768px){display:none}';
-  actions.appendChild(onlineIndicator);
+
 
   // Context panel toggle (desktop collapse / mobile drawer)
   const panelBtn = document.createElement('button');
@@ -516,12 +508,6 @@ function renderPage(hash) {
    ============================================================ */
 function updateOnlineStatus() {
   AppState.onlineStatus = navigator.onLine;
-  const el = document.getElementById('online-indicator');
-  if (!el) return;
-  el.className    = AppState.onlineStatus ? 'online-badge' : 'offline-badge';
-  el.innerHTML    = AppState.onlineStatus
-    ? `<span class="online-dot"></span> Online`
-    : `<span class="offline-dot"></span> Offline`;
 }
 
 /* ============================================================
