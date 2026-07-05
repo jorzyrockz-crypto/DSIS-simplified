@@ -1827,22 +1827,6 @@ img, svg {
   #context-panel {
     display: none; /* hidden; shown as drawer */
   }
-
-  #sidebar {
-    width: var(--sidebar-collapsed);
-    min-width: var(--sidebar-collapsed);
-  }
-
-  #sidebar.collapsed {
-    width: var(--sidebar-collapsed);
-    min-width: var(--sidebar-collapsed);
-  }
-
-  .collapse-btn { display: none; }
-  .nav-section-label { opacity: 0; }
-  .nav-label { opacity: 0; pointer-events: none; }
-  .nav-badge { opacity: 0; }
-  #sidebar .sidebar-logo .logo-text { opacity: 0; width: 0; }
 }
 
 /* Phone: <= 768px */
@@ -1862,6 +1846,8 @@ img, svg {
   #sidebar.mobile-open {
     transform: translateX(0);
   }
+
+  .collapse-btn { display: none !important; }
 
   #sidebar .nav-label     { opacity: 1 !important; pointer-events: auto !important; }
   #sidebar .nav-badge     { opacity: 1 !important; }

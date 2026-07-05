@@ -332,6 +332,15 @@ function restoreSidebarState() {
     if (stored === '1') {
       AppState.sidebarCollapsed = true;
       DOM.sidebar.classList.add('collapsed');
+    } else if (stored === '0') {
+      AppState.sidebarCollapsed = false;
+      DOM.sidebar.classList.remove('collapsed');
+    } else {
+      // Default state when no preference is saved (collapse on tablet, expand on desktop)
+      if (window.innerWidth <= 1024) {
+        AppState.sidebarCollapsed = true;
+        DOM.sidebar.classList.add('collapsed');
+      }
     }
   } catch (_) { /* ignore */ }
 }
