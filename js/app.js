@@ -759,6 +759,71 @@ function wireHeaderSearch(searchEl, sug) {
       sug.classList.remove('active');
     }
   });
+
+  // Mobile search bar setup
+  const mobileInput = document.getElementById('mobile-global-search');
+  const mobileSuggest = document.getElementById('mobile-search-suggestions');
+  const mobileBar = document.getElementById('mobile-search-bar');
+  const mobileClear = document.getElementById('mobile-search-clear');
+
+  if (mobileInput && mobileSuggest && mobileBar && mobileClear) {
+    // 1. Sync Input & Proxy Events
+    mobileInput.addEventListener('input', () => {
+      sug.classList.add('active'); // Keep desktop container active
+      input.value = mobileInput.value;
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+      mobileClear.style.display = mobileInput.value ? 'flex' : 'none';
+    });
+
+    mobileClear.addEventListener('click', () => {
+      mobileInput.value = '';
+      mobileInput.dispatchEvent(new Event('input', { bubbles: true }));
+      mobileClear.style.display = 'none';
+      mobileInput.focus();
+    });
+
+    mobileInput.addEventListener('focus', () => {
+      sug.classList.add('active'); // Make desktop container active on mobile focus
+      _updateSuggestions(mobileInput.value.trim(), sug);
+      mobileSuggest.innerHTML = sug.innerHTML;
+      const isVisible = window.getComputedStyle(sug).display !== 'none' && mobileSuggest.innerHTML.trim() !== '';
+      mobileSuggest.style.display = isVisible ? 'block' : 'none';
+      mobileBar.classList.toggle('suggestions-open', isVisible);
+    });
+
+    // Delegate click events on copied search suggestions
+    mobileSuggest.addEventListener('click', (e) => {
+      const item = e.target.closest('.suggestion-item');
+      if (item) {
+        const hash = item.getAttribute('data-hash');
+        if (hash) {
+          mobileSuggest.style.display = 'none';
+          mobileBar.classList.remove('suggestions-open');
+          sug.classList.remove('active');
+          Router.navigate(hash);
+        }
+      }
+    });
+
+    // 2. Sync Suggestions & Attached UI
+    const observer = new MutationObserver(() => {
+      mobileSuggest.innerHTML = sug.innerHTML;
+      const isVisible = window.getComputedStyle(sug).display !== 'none' && mobileSuggest.innerHTML.trim() !== '';
+      
+      mobileSuggest.style.display = isVisible ? 'block' : 'none';
+      mobileBar.classList.toggle('suggestions-open', isVisible);
+    });
+    observer.observe(sug, { childList: true, subtree: true, attributes: true });
+
+    // Handle clicks outside mobile search to close
+    document.addEventListener('click', (e) => {
+      if (!mobileBar.contains(e.target)) {
+        sug.classList.remove('active');
+        mobileSuggest.style.display = 'none';
+        mobileBar.classList.remove('suggestions-open');
+      }
+    });
+  }
 }
 
 async function _updateSuggestions(query, sug) {
@@ -874,6 +939,7 @@ function _buildSectionHeader(title) {
 function _buildSugRow(label, sub, hash, sug) {
   const el = document.createElement('div');
   el.className = 'suggestion-item';
+  el.setAttribute('data-hash', hash);
   el.innerHTML = `
     <span class="suggestion-item-main">${Utils.escapeHtml(label)}</span>
     <span class="suggestion-item-sub">${Utils.escapeHtml(sub)}</span>

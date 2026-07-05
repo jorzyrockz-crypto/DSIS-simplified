@@ -242,8 +242,6 @@ const DashboardPage = (() => {
       `;
     } else {
       const listWrapper = document.createElement('div');
-      listWrapper.style.maxHeight = '400px';
-      listWrapper.style.overflowY = 'auto';
 
       watchlistItems.forEach((entry, idx) => {
         const row = document.createElement('div');

@@ -637,6 +637,10 @@ const SettingsPage = (() => {
               <h4 class="timeline-title">v1.2.0 <span class="timeline-date">July 2026 (Current)</span></h4>
               <ul class="timeline-list">
                 <li><strong>Major Update:</strong> Refactored the Developer Panel to use a clean grid layout, staging badge indicator, and a custom dark-theme JSON syntax viewer.</li>
+                <li><strong>Feature:</strong> Built an integrated, mobile-optimized global search bar that replicates search queries with touch-friendly layouts.</li>
+                <li><strong>Fix:</strong> Prevented mobile search box from rendering on top of the slide-in sidebar menu by adjusting its stacking context z-index.</li>
+                <li><strong>Fix:</strong> Removed height and max-height constraints from widgets and cards in phase5.css to enable natural vertical layout expansion.</li>
+                <li><strong>Fix:</strong> Repaired mobile dashboard flex collapse bug preventing widget cards from rendering by adding flex-shrink: 0 rules.</li>
                 <li><strong>UX Enhancement:</strong> Repositioned the sidebar notification badge to float absolutely over the icon for better visual alignment.</li>
                 <li><strong>Fix:</strong> Removed the legacy online/offline indicator from the header actions bar.</li>
                 <li><strong>Feature:</strong> Integrated matching SVG icons next to all settings page titles for a richer, more polished desktop-grade design.</li>
@@ -748,7 +752,7 @@ const SettingsPage = (() => {
         <div style="display:flex; align-items:flex-start; justify-content:space-between; width:100%">
           <div>
             <h1 class="page-title" style="display:flex; align-items:center; gap:12px; font-size: 24px; font-weight: 700; margin:0">
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a2 2 0 0 1 2.83 0l.3.3a2 2 0 0 1 0 2.83l-3.77 3.77a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a2 2 0 0 1 2.83 0l.3.3a2 2 0 0 1 0 2.83l-3.77 3.77a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a2 2 0 0 1 2.83 0l.3.3a2 2 0 0 1 0 2.83l-3.77 3.77a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0"></path><path d="m10 14-2.7 2.7a2 2 0 0 0 0 2.83l.3.3a2 2 0 0 0 2.83 0L13 17"></path><path d="m6.3 14.7-3.8 3.8a2 2 0 0 0 0 2.8l.3.3a2 2 0 0 0 2.8 0l3.8-3.8"></path><path d="M13 3.7 3.7 13"></path></svg>
+              ${Components.icon('edit') || ''}
               Developer Panel
             </h1>
             <p class="page-subtitle" style="color:var(--color-text-secondary); margin-top:4px">Advanced administrative tools for system debugging and staging validation.</p>

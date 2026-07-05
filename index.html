@@ -94,6 +94,22 @@
         <!-- Populated by app.js buildHeader() -->
       </header>
 
+      <!-- MOBILE SEARCH BAR -->
+      <div id="mobile-search-bar">
+        <div class="search-box">
+          <span class="search-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span>
+          <input
+            type="search"
+            id="mobile-global-search"
+            placeholder="Search ICS records, recipients..."
+            aria-label="Mobile global search"
+            autocomplete="off"
+          />
+          <span id="mobile-search-clear" class="clear-icon" style="display:none"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span>
+        </div>
+        <div id="mobile-search-suggestions"></div>
+      </div>
+
       <!-- WORKSPACE (page content renders here) -->
       <main id="workspace"
             role="main"

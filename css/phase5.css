@@ -318,7 +318,7 @@
   box-shadow: var(--shadow-xs);
   display: flex;
   flex-direction: column;
-  height: 100%;
+  height: auto;
   transition: transform var(--transition-fast), box-shadow var(--transition-fast);
 }
 
@@ -349,7 +349,7 @@
   flex-direction: column;
   gap: 8px;
   overflow-y: auto;
-  max-height: 250px;
+  max-height: none;
 }
 
 .widget-list-item {
