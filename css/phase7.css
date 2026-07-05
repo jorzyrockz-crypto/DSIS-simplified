@@ -1,0 +1,152 @@
+/* ============================================================
+   ICS TRACKING & MONITORING TOOL — Phase 7 CSS
+   Dark Mode variables, Welcome Experience, and Developer Panel
+   ============================================================ */
+
+/* ── Dark Mode Variable Overrides ── */
+[data-theme="dark"] {
+  --color-bg:               #131314; /* Google Dark Slate Background */
+  --color-surface:          #1F1F20; /* Google Dark Slate Surface */
+  --color-surface-alt:      #2D2F31;
+  --color-header-bg:        rgba(31, 31, 32, 0.85); /* Translucent dark surface */
+
+  --color-border:           #444746; /* Google Dark Border */
+  --color-border-light:     #2D2F31;
+
+  --color-text-primary:     #E3E3E3; /* High contrast dark text */
+  --color-text-secondary:   #C4C7C5;
+  --color-text-tertiary:    #8E918F;
+
+  --color-primary-light:    rgba(168, 201, 255, 0.15);
+  --color-success-light:    rgba(129, 201, 149, 0.15);
+  --color-warning-light:    rgba(253, 214, 99, 0.15);
+  --color-danger-light:     rgba(242, 139, 130, 0.15);
+  --color-info-light:       rgba(168, 201, 255, 0.15);
+
+  --color-sidebar-bg:       #0B0B0C; /* Google Dark Sidebar */
+}
+
+/* ── Welcome Experience Overlay ── */
+.welcome-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(15, 23, 42, 0.7);
+  backdrop-filter: blur(6px);
+  z-index: 3000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.welcome-modal {
+  background: var(--color-surface);
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-2xl);
+  width: 100%;
+  max-width: 500px;
+  padding: var(--space-6) var(--space-8);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  animation: welcome-pop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.welcome-icon {
+  font-size: 48px;
+  margin-bottom: var(--space-4);
+}
+
+.welcome-title {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+  margin-bottom: var(--space-2);
+}
+
+.welcome-desc {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+  margin-bottom: var(--space-6);
+}
+
+@keyframes welcome-pop {
+  from { transform: scale(0.85); opacity: 0; }
+  to { transform: scale(1.0); opacity: 1; }
+}
+
+/* ── PWA Install Bar ── */
+.pwa-install-bar {
+  display: none;
+  background: var(--color-primary);
+  color: #FFFFFF;
+  padding: 8px var(--space-5);
+  font-size: var(--font-size-xs);
+  justify-content: space-between;
+  align-items: center;
+  z-index: 1200;
+  box-shadow: var(--shadow-sm);
+}
+
+.pwa-install-bar.visible {
+  display: flex;
+}
+
+/* ── Developer Mode Panel ── */
+.developer-panel {
+  background: var(--color-surface-alt);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+  margin-top: var(--space-4);
+  font-family: monospace;
+  font-size: 11px;
+}
+
+.developer-panel-header {
+  font-weight: bold;
+  font-size: 12px;
+  margin-bottom: 8px;
+  border-bottom: 1px solid var(--color-border);
+  padding-bottom: 4px;
+  color: var(--color-primary);
+}
+
+/* ── Help Center Accordions ── */
+.help-accordion {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--space-2);
+  overflow: hidden;
+}
+
+.help-accordion-title {
+  background: var(--color-surface-alt);
+  padding: var(--space-3) var(--space-4);
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-primary);
+}
+
+.help-accordion-content {
+  padding: var(--space-4);
+  background: var(--color-surface);
+  display: none;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+  border-top: 1px solid var(--color-border);
+}
+
+.help-accordion.active .help-accordion-content {
+  display: block;
+}

@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+
+  <!-- SEO -->
+  <title>Dashboard — ICS Tracker</title>
+  <meta name="description"
+        content="ICS Tracking & Monitoring Tool — Manage Inventory Custodian Slips offline-first with a clean, modern interface." />
+  <meta name="theme-color" content="#2563EB" />
+  <meta name="application-name" content="ICS Tracker" />
+
+  <!-- Offline / PWA Hints -->
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="ICS Tracker" />
+
+  <!-- Favicon (inline SVG data URI — no external dependency) -->
+  <link rel="icon" type="image/svg+xml"
+        href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%232563EB'/><text x='50%25' y='55%25' dominant-baseline='middle' text-anchor='middle' font-family='system-ui,sans-serif' font-size='11' font-weight='700' fill='white'>ICS</text></svg>" />
+  <link rel="manifest" href="manifest.json" />
+
+  <!-- Google Fonts — loaded with display=swap so app works while font fetches -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet" />
+
+  <!-- Design System & Layout -->
+  <link rel="stylesheet" href="css/styles.css" />
+  <!-- Phase 2: Database & Record Management -->
+  <link rel="stylesheet" href="css/phase2.css" />
+  <!-- Phase 3: New ICS Wizard & Item Management -->
+  <link rel="stylesheet" href="css/phase3.css" />
+  <!-- Phase 4: ICS Record Viewer, Timeline & Monitoring -->
+  <link rel="stylesheet" href="css/phase4.css" />
+  <!-- Phase 5: Smart Search, Filters, Notifications & Global Command Center -->
+  <link rel="stylesheet" href="css/phase5.css" />
+  <!-- Phase 6: Reports, Printing & Data Management -->
+  <link rel="stylesheet" href="css/phase6.css" />
+  <!-- Phase 7: Production Polish, Offline PWA, Performance Optimization & Future Expansion Framework -->
+  <link rel="stylesheet" href="css/phase7.css" />
+</head>
+
+<body>
+
+  <!--
+    ═══════════════════════════════════════════════════════════
+    APPLICATION SHELL
+    ─────────────────────────────────────────────────────────
+    #app
+    ├── #sidebar            (left navigation)
+    ├── #main-content
+    │   ├── #header         (persistent top bar)
+    │   └── #workspace      (dynamic page content)
+    └── #context-panel      (right detail panel — desktop)
+
+    Supplementary:
+    ├── #context-drawer     (slide-over — tablet/mobile)
+    ├── #bottom-nav         (sticky bottom bar — mobile)
+    └── #overlay            (backdrop for drawers)
+    ═══════════════════════════════════════════════════════════
+  -->
+
+  <!-- ── Mobile Overlay ── -->
+  <div id="overlay" class="overlay" role="presentation" aria-hidden="true"></div>
+
+  <!-- ── Context Drawer (tablet/mobile slide-over) ── -->
+  <aside id="context-drawer"
+         role="complementary"
+         aria-label="Context panel"
+         aria-hidden="true">
+    <!-- Populated by app.js buildContextDrawer() -->
+  </aside>
+
+  <!-- ── Main App ── -->
+  <div id="app">
+
+    <!-- LEFT SIDEBAR -->
+    <aside id="sidebar"
+           role="navigation"
+           aria-label="Sidebar navigation">
+      <!-- Populated by app.js buildSidebar() -->
+    </aside>
+
+    <!-- MAIN CONTENT AREA -->
+    <div id="main-content">
+
+      <!-- TOP HEADER -->
+      <header id="header" role="banner">
+        <!-- Populated by app.js buildHeader() -->
+      </header>
+
+      <!-- WORKSPACE (page content renders here) -->
+      <main id="workspace"
+            role="main"
+            aria-live="polite"
+            aria-label="Page content">
+        <!-- Populated by Router → page modules -->
+      </main>
+
+    </div><!-- /#main-content -->
+
+    <!-- RIGHT CONTEXT PANEL (desktop only) -->
+    <aside id="context-panel"
+           role="complementary"
+           aria-label="Context information">
+      <!-- Populated by app.js buildContextPanel() -->
+    </aside>
+
+  </div><!-- /#app -->
+
+  <!-- ── Bottom Navigation (mobile) ── -->
+  <nav id="bottom-nav"
+       role="navigation"
+       aria-label="Mobile bottom navigation">
+    <!-- Populated by app.js buildBottomNav() -->
+  </nav>
+
+  <!-- ══════════════════════════════════════════════════════
+       SCRIPTS — ORDER MATTERS
+       Phase 1: router, components
+       Phase 2: utils, db, services, ui, pages, app
+       ══════════════════════════════════════════════════════ -->
+
+  <!-- Phase 1: Core Engine -->
+  <script src="js/router.js"></script>
+  <script src="js/components.js"></script>
+
+  <!-- Phase 2: Utilities (no dependencies) -->
+  <script src="js/utils/utils.js"></script>
+
+  <!-- Phase 2: Database Layer -->
+  <script src="js/db/db.js"></script>
+
+  <!-- Phase 2: Services (depend on db + utils) -->
+  <script src="js/services/search-engine.js"></script>
+  <script src="js/services/validation.js"></script>
+  <script src="js/services/recent-activity.js"></script>
+  <script src="js/services/favorites-manager.js"></script>
+  <script src="js/services/search-history.js"></script>
+  <script src="js/services/timeline-service.js"></script>
+  <script src="js/services/monitoring-service.js"></script>
+  <script src="js/services/health-analyzer.js"></script>
+  <script src="js/services/relationship-engine.js"></script>
+  <script src="js/services/notification-engine.js"></script>
+  <script src="js/services/record-service.js"></script>
+
+  <!-- Phase 2: UI Helpers -->
+  <script src="js/ui/modal.js"></script>
+  <script src="js/ui/command-palette.js"></script>
+
+  <!-- Phase 6: Services & Helpers -->
+  <script src="js/services/settings-manager.js"></script>
+  <script src="js/services/report-engine.js"></script>
+  <script src="js/services/export-service.js"></script>
+  <script src="js/services/backup-manager.js"></script>
+  <script src="js/services/maintenance-service.js"></script>
+  <script src="js/services/audit-logger.js"></script>
+  <script src="js/ui/print-engine.js"></script>
+
+  <!-- Page Modules (depend on services + ui) -->
+  <script src="js/pages/dashboard.js"></script>
+  <script src="js/pages/records.js"></script>
+  <script src="js/pages/viewer.js"></script>
+  <script src="js/pages/new-ics.js"></script>
+  <script src="js/pages/notifications.js"></script>
+  <script src="js/pages/reports.js"></script>
+  <script src="js/pages/settings.js"></script>
+
+  <!-- Application Orchestrator (must be last) -->
+  <script src="js/app.js"></script>
+
+</body>
+</html>

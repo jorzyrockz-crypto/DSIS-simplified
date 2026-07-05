@@ -1,0 +1,303 @@
+/* ============================================================
+   ICS TRACKING & MONITORING TOOL — Phase 3 Styles
+   Wizard Auto-complete, Reordering, Item Drawer & Undo Banner
+   ============================================================ */
+
+/* ── Item Drawer / Panel (Slide-out) ── */
+.item-drawer {
+  position: fixed;
+  top: 0;
+  right: -420px; /* Hidden by default */
+  width: 400px;
+  height: 100vh;
+  background: var(--color-surface);
+  border-left: 1.5px solid var(--color-border);
+  box-shadow: -4px 0 24px rgba(0, 0, 0, 0.08);
+  z-index: 1010; /* Above header (1000) and overlay */
+  display: flex;
+  flex-direction: column;
+  transition: right 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.item-drawer.open {
+  right: 0;
+}
+
+.item-drawer-header {
+  padding: var(--space-5) var(--space-6);
+  border-bottom: 1.5px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--color-surface);
+}
+
+.item-drawer-title {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+}
+
+.item-drawer-body {
+  flex: 1;
+  padding: var(--space-6);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.item-drawer-footer {
+  padding: var(--space-4) var(--space-6);
+  border-top: 1.5px solid var(--color-border);
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-3);
+  background: var(--color-surface-alt);
+}
+
+@media (max-width: 480px) {
+  .item-drawer {
+    width: 100%;
+    right: -100%;
+  }
+}
+
+/* ── Autocomplete / Suggestions Dropdown ── */
+.autocomplete-container {
+  position: relative;
+  width: 100%;
+}
+
+.autocomplete-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: var(--color-surface);
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 1020;
+  list-style: none;
+  padding: 4px 0;
+  margin: 4px 0 0 0;
+  display: none; /* Controlled dynamically */
+}
+
+.autocomplete-dropdown.active {
+  display: block;
+}
+
+.autocomplete-item {
+  padding: 8px 12px;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-primary);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  transition: background var(--transition-fast);
+}
+
+.autocomplete-item:hover,
+.autocomplete-item.highlighted {
+  background: var(--color-surface-alt);
+}
+
+.autocomplete-item .ac-title {
+  font-weight: var(--font-weight-semibold);
+}
+
+.autocomplete-item .ac-subtitle {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-tertiary);
+}
+
+/* ── Mobile Item Cards ── */
+.items-mobile-list {
+  display: none;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
+.item-mobile-card {
+  background: var(--color-surface);
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.item-mobile-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--space-2);
+}
+
+.item-mobile-card-title {
+  font-weight: var(--font-weight-semibold);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-primary);
+  line-height: 1.4;
+}
+
+.item-mobile-card-meta {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-tertiary);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 12px;
+}
+
+.item-mobile-card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-top: 1px solid var(--color-border-light);
+  padding-top: var(--space-2);
+  margin-top: var(--space-1);
+}
+
+.item-mobile-card-cost {
+  font-weight: var(--font-weight-bold);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-primary);
+}
+
+.item-mobile-card-actions {
+  display: flex;
+  gap: var(--space-1);
+}
+
+@media (max-width: 768px) {
+  #items-table-wrap {
+    display: none;
+  }
+  .items-mobile-list {
+    display: flex;
+  }
+}
+
+/* ── Bulk Operations Bar ── */
+.items-bulk-bar {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-4);
+  flex-wrap: wrap;
+}
+
+/* ── Undo Banner ── */
+.undo-banner {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translate(-50%, 100px);
+  background: #1F2937;
+  color: white;
+  padding: 8px 18px;
+  border-radius: var(--radius-full);
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  font-size: var(--font-size-sm);
+  z-index: 1050;
+  opacity: 0;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s;
+  pointer-events: none;
+}
+
+.undo-banner.visible {
+  transform: translate(-50%, 0);
+  opacity: 1;
+  pointer-events: all;
+}
+
+.undo-action-btn {
+  background: none;
+  border: none;
+  color: var(--color-primary-light);
+  font-weight: var(--font-weight-bold);
+  cursor: pointer;
+  padding: 0;
+  font-size: var(--font-size-sm);
+  text-decoration: underline;
+  transition: color var(--transition-fast);
+}
+
+.undo-action-btn:hover {
+  color: white;
+}
+
+.undo-close-btn {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.4);
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+  padding: 0;
+}
+
+.undo-close-btn:hover {
+  color: white;
+}
+
+/* ── Reorder Up / Down Buttons ── */
+.reorder-btns {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  align-items: center;
+}
+
+.reorder-btn {
+  background: none;
+  border: none;
+  color: var(--color-text-tertiary);
+  cursor: pointer;
+  padding: 2px;
+  border-radius: 4px;
+  transition: all var(--transition-fast);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.reorder-btn:hover {
+  color: var(--color-primary);
+  background: var(--color-primary-light);
+}
+
+.reorder-btn:disabled {
+  opacity: 0.25;
+  cursor: not-allowed;
+}
+
+/* ── Real-time Uniqueness Indicator ── */
+.input-indicator {
+  position: absolute;
+  right: var(--space-3);
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  pointer-events: none;
+}
+
+.input-indicator.valid {
+  color: var(--color-success);
+}
+
+.input-indicator.invalid {
+  color: var(--color-danger);
+}
