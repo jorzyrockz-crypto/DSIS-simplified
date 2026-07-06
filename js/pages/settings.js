@@ -253,7 +253,7 @@ const SettingsPage = (() => {
           <h1 class="page-title" style="display:flex;align-items:center;gap:10px">
             ${Components.icon('palette') || ''} Appearance & Theme
           </h1>
-          <p class="page-subtitle">Choose between light mode or sleek dark themes.</p>
+          <p class="page-subtitle">Choose between light mode, sleek dark themes, and custom workspace backgrounds.</p>
         </div>
       </div>
       <div class="review-block" style="margin:0;max-width:650px;border:none;box-shadow:none;padding:0;background:transparent">
@@ -266,15 +266,45 @@ const SettingsPage = (() => {
           </select>
         </div>
 
+        <div class="form-group" style="margin-bottom:var(--space-6)" id="bg-selector-group">
+          <label class="form-label">Workspace Background</label>
+          <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap:12px; margin-top:8px;">
+            ${SettingsManager.themes.map(t => {
+              const previewStyle = t.type === 'image' 
+                ? `background-image: url(${t.val}); background-size: cover; background-position: center;` 
+                : `background: ${t.val};`;
+              const isSelected = (s.bgTheme || 'default') === t.id;
+              const borderStyle = isSelected ? 'border: 2px solid var(--color-primary);' : 'border: 2px solid transparent;';
+              return `
+                <div class="theme-thumb" data-theme-id="${t.id}" style="cursor:pointer; text-align:center;">
+                  <div id="theme-preview-${t.id}" style="${previewStyle} ${borderStyle} width:100%; height:64px; border-radius:10px; transition:all 0.2s; box-shadow: var(--shadow-sm);"></div>
+                  <span style="font-size:11px; color:var(--color-text-secondary); margin-top:6px; display:block; font-weight: 500;">${t.name}</span>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        </div>
+
         <button class="btn btn-primary" id="btn-save-appearance">Apply Theme Settings</button>
       </div>
     `;
 
+    let selectedBgTheme = s.bgTheme || 'default';
+
+    // Thumbnail selection listener
+    container.querySelectorAll('.theme-thumb').forEach(thumb => {
+      thumb.addEventListener('click', () => {
+        const tId = thumb.getAttribute('data-theme-id');
+        selectedBgTheme = tId;
+        window.applyAppTheme(tId);
+      });
+    });
+
     container.querySelector('#btn-save-appearance').addEventListener('click', () => {
       const themeVal = document.getElementById('set-theme-select').value;
-      const data = { ...s, theme: themeVal };
+      const data = { ...s, theme: themeVal, bgTheme: selectedBgTheme };
       SettingsManager.save(data);
-      UIKit.toast('Theme preferences saved.', 'success');
+      UIKit.toast('Appearance preferences saved.', 'success');
     });
   }
 
@@ -667,6 +697,7 @@ const SettingsPage = (() => {
                 <li><strong>UX Enhancement:</strong> Set context panel body and drawer overlays to transparent backgrounds.</li>
                 <li><strong>UX Enhancement:</strong> Added orientation-aware context drawer theme styles (soft solid backgrounds in portrait, transparent backgrounds in landscape).</li>
                 <li><strong>UX Enhancement:</strong> Removed all vertical layout borders and zeroed out app container gaps for a seamless borderless layout design.</li>
+                <li><strong>Feature:</strong> Added custom workspace background selectors (Default, Slate, Sunset, Ocean, Mountain) in the settings appearance tab, complete with dark-theme adaptive glassmorphism overrides.</li>
               </ul>
             </div>
 

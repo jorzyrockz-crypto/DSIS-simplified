@@ -592,6 +592,9 @@ function bootstrap() {
   try {
     const s = SettingsManager.get();
     if (s.theme) document.documentElement.setAttribute('data-theme', s.theme);
+    if (s.bgTheme && window.applyAppTheme) {
+      window.applyAppTheme(s.bgTheme);
+    }
   } catch {}
 
   // Collect DOM references

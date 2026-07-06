@@ -24,6 +24,8 @@
   --color-info-light:       rgba(168, 201, 255, 0.15);
 
   --color-sidebar-bg:       #0B0B0C; /* Google Dark Sidebar */
+  --color-glass:            rgba(31, 31, 32, 0.7);
+  --color-glass-border:     rgba(255, 255, 255, 0.08);
 }
 
 /* ── Welcome Experience Overlay ── */
