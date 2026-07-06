@@ -291,13 +291,19 @@ const SettingsPage = (() => {
 
     let selectedBgTheme = s.bgTheme || 'default';
 
-    // Thumbnail selection listener
+    // Thumbnail click listener — re-attach onclick for guaranteed binding
     container.querySelectorAll('.theme-thumb').forEach(thumb => {
-      thumb.addEventListener('click', () => {
-        const tId = thumb.getAttribute('data-theme-id');
+      const tId = thumb.getAttribute('data-theme-id');
+      thumb.addEventListener('click', (e) => {
+        e.preventDefault();
         selectedBgTheme = tId;
         window.applyAppTheme(tId);
       });
+      thumb.onclick = (e) => {
+        e.preventDefault();
+        selectedBgTheme = tId;
+        window.applyAppTheme(tId);
+      };
     });
 
     container.querySelector('#btn-save-appearance').addEventListener('click', () => {
@@ -698,6 +704,7 @@ const SettingsPage = (() => {
                 <li><strong>UX Enhancement:</strong> Added orientation-aware context drawer theme styles (soft solid backgrounds in portrait, transparent backgrounds in landscape).</li>
                 <li><strong>UX Enhancement:</strong> Removed all vertical layout borders and zeroed out app container gaps for a seamless borderless layout design.</li>
                 <li><strong>Feature:</strong> Added custom workspace background selectors (Default, Slate, Sunset, Ocean, Mountain) in the settings appearance tab, complete with dark-theme adaptive glassmorphism overrides.</li>
+                <li><strong>Feature:</strong> Added per-theme accent color system — each workspace background theme now updates the application's primary color, hover states, and soft glow variants to match.</li>
               </ul>
             </div>
 

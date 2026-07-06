@@ -3172,16 +3172,57 @@ main {
   gap: 0 !important;
 }
 
-/* Glassmorphism theme styles when image theme is active */
-.theme-image-active #app,
-.theme-image-active #sidebar,
-.theme-image-active #context-panel,
-.theme-image-active #context-drawer,
-.theme-image-active .theme-thumb div,
-.theme-image-active .context-card {
-  background: var(--color-glass) !important;
+.theme-thumb {
+  position: relative;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+.theme-thumb:hover {
+  transform: translateY(-4px) !important;
+}
+.theme-thumb.active div[id^="theme-preview"] {
+  border-color: var(--color-primary, #6366f1) !important;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2) !important;
+}
+.theme-thumb.active::after {
+  content: '✓';
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  background: var(--color-primary, #6366f1);
+  color: white;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: bold;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  z-index: 2;
+}
+
+/* Enhanced Glass Effects */
+body.workspace-enhanced-bg {
+  background-attachment: fixed !important;
+  background-size: cover !important;
+  background-position: center !important;
+  transition: background 0.5s ease-in-out, background-color 0.5s ease !important;
+}
+
+body.workspace-enhanced-bg #app,
+body.workspace-enhanced-bg #sidebar,
+body.workspace-enhanced-bg #context-panel,
+body.workspace-enhanced-bg #context-drawer,
+body.workspace-enhanced-bg .context-card,
+body.workspace-enhanced-bg .stat-card,
+body.workspace-enhanced-bg .notif-card,
+body.workspace-enhanced-bg .inspector-card {
+  background: var(--glass-color, rgba(255, 255, 255, 0.75)) !important;
   backdrop-filter: blur(20px) !important;
-  border: 1px solid var(--color-glass-border) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.05) !important;
 }
 
 

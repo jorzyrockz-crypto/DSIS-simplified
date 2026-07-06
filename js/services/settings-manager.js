@@ -29,36 +29,44 @@ const SettingsManager = (() => {
   };
 
   const themes = [
-    { id: 'default', name: 'Default', type: 'color', val: '#f8fafc' },
-    { id: 'slate', name: 'Slate', type: 'color', val: '#334155' },
-    { id: 'sunset', name: 'Sunset', type: 'gradient', val: 'linear-gradient(135deg, #ff9a9e 0%, #fad0c4 100%)' },
-    { id: 'ocean', name: 'Ocean', type: 'image', val: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1200&q=80' },
-    { id: 'mountain', name: 'Mountain', type: 'image', val: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=1200&q=80' }
+    { id: 'default',  name: 'Default',  type: 'color',    val: '#f8fafc',  glass: 'rgba(255, 255, 255, 0.8)',    accent: '#6366f1' },
+    { id: 'slate',    name: 'Slate',    type: 'color',    val: '#1e293b',  glass: 'rgba(255, 255, 255, 0.1)',    accent: '#94a3b8' },
+    { id: 'sunset',   name: 'Sunset',   type: 'gradient', val: 'linear-gradient(135deg, #fbc2eb 0%, #a6c1ee 100%)', glass: 'rgba(255, 255, 255, 0.7)',  accent: '#d946ef' },
+    { id: 'ocean',    name: 'Ocean',    type: 'image',    val: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1200&q=80', glass: 'rgba(255, 255, 255, 0.65)', accent: '#06b6d4' },
+    { id: 'mountain', name: 'Mountain', type: 'image',    val: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=1200&q=80', glass: 'rgba(255, 255, 255, 0.7)',  accent: '#10b981' }
   ];
 
   window.applyAppTheme = (themeId) => {
     const theme = themes.find(t => t.id === themeId);
     if (!theme) return;
-    
-    const body = document.body;
-    if (theme.type === 'image') {
-        body.style.backgroundImage = `url(${theme.val})`;
-        body.style.backgroundSize = 'cover';
-        body.style.backgroundAttachment = 'fixed';
-        body.classList.add('theme-image-active');
-    } else {
-        body.style.backgroundImage = 'none';
-        body.style.backgroundColor = theme.val;
-        body.classList.remove('theme-image-active');
-    }
 
-    // Border highlights on thumbnail selections
-    document.querySelectorAll('.theme-thumb div').forEach(div => {
-      div.style.borderColor = 'transparent';
-    });
-    const selectedThumb = document.getElementById(`theme-preview-${themeId}`);
-    if (selectedThumb) {
-      selectedThumb.style.borderColor = 'var(--color-primary)';
+    const body = document.body;
+    const root = document.documentElement;
+
+    // Apply per-theme accent color and soft variant
+    root.style.setProperty('--color-primary', theme.accent);
+    root.style.setProperty('--color-primary-hover', theme.accent);
+    root.style.setProperty('--color-primary-soft', theme.accent + '22');
+
+    // Apply glass tint for background overlay elements
+    root.style.setProperty('--glass-color', theme.glass);
+
+    // Update active thumbnail classes
+    document.querySelectorAll('.theme-thumb').forEach(t => t.classList.remove('active'));
+    const activeThumb = document.querySelector(`[data-theme-id="${themeId}"]`);
+    if (activeThumb) activeThumb.classList.add('active');
+
+    // Apply background
+    if (theme.type === 'image') {
+      body.style.backgroundImage = `url(${theme.val})`;
+      body.classList.add('workspace-enhanced-bg');
+    } else if (theme.type === 'gradient') {
+      body.style.backgroundImage = theme.val;
+      body.classList.add('workspace-enhanced-bg');
+    } else {
+      body.style.backgroundImage = 'none';
+      body.style.backgroundColor = theme.val;
+      body.classList.remove('workspace-enhanced-bg');
     }
   };
 
