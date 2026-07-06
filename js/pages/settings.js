@@ -26,6 +26,19 @@ const SettingsPage = (() => {
     localStorage.setItem('ics-dev-mode', String(val));
   }
 
+  // Material Theme helpers
+  function _getMaterialThemeState() {
+    try { return localStorage.getItem('ics-material-theme') === 'true'; } catch { return false; }
+  }
+
+  function _setMaterialThemeState(val) {
+    try { localStorage.setItem('ics-material-theme', String(val)); } catch {}
+  }
+
+  function _applyMaterialTheme(enabled) {
+    try { document.documentElement.classList.toggle('material-theme', !!enabled); } catch {}
+  }
+
   /* ----------------------------------------------------------
      Context Panel
      ---------------------------------------------------------- */
@@ -246,6 +259,8 @@ const SettingsPage = (() => {
   /* ── Tab: Appearance ── */
   function _renderAppearanceTab(container) {
     const s = SettingsManager.get();
+    const materialEnabled = _getMaterialThemeState();
+    const themeIsLocked = materialEnabled;
 
     container.innerHTML = `
       <div class="page-header" style="margin-bottom:var(--space-6)">
@@ -258,14 +273,38 @@ const SettingsPage = (() => {
       </div>
       <div class="review-block" style="margin:0;max-width:650px;border:none;box-shadow:none;padding:0;background:transparent">
         
+        <!-- Material Design Theme Toggle -->
+        <div style="margin-bottom:var(--space-6);padding:var(--space-4);background:var(--color-surface-alt);border:1px solid var(--color-border-light);border-radius:var(--radius-md)">
+          <div style="display:flex;gap:12px;align-items:flex-start">
+            <div style="flex:1">
+              <div style="font-weight:600;margin-bottom:4px">Material Design Theme</div>
+              <div style="font-size:12px;color:var(--color-text-secondary);line-height:1.4">
+                Enable Material Design 3 with refined components, elevation system, and ripple effects. When enabled, theme is locked to Light mode for optimal appearance.
+              </div>
+            </div>
+            <div style="flex-shrink:0;display:flex;align-items:center;gap:8px">
+              <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
+                <input type="checkbox" id="set-material-toggle"${materialEnabled ? ' checked' : ''}>
+                <span style="font-size:13px;font-weight:500">${materialEnabled ? 'Enabled' : 'Disabled'}</span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <!-- Theme Mode Selection -->
         <div class="form-group" style="margin-bottom:var(--space-5)">
-          <label class="form-label">Theme Mode</label>
-          <select class="sort-select" id="set-theme-select" style="width:100%;height:38px;">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+            <label class="form-label" style="margin:0">Theme Mode</label>
+            ${themeIsLocked ? '<span style="font-size:11px;color:var(--color-warning);font-weight:600;display:flex;align-items:center;gap:4px">🔒 Locked (Material)</span>' : ''}
+          </div>
+          <select class="sort-select" id="set-theme-select" style="width:100%;height:38px;"${themeIsLocked ? ' disabled' : ''}>
             <option value="light" ${s.theme === 'light' ? 'selected' : ''}>Light Theme</option>
             <option value="dark" ${s.theme === 'dark' ? 'selected' : ''}>Dark Theme</option>
           </select>
+          ${themeIsLocked ? '<p style="font-size:12px;color:var(--color-text-secondary);margin-top:6px">Theme selection is locked while Material Design is enabled.</p>' : ''}
         </div>
 
+        <!-- Workspace Background -->
         <div class="form-group" style="margin-bottom:var(--space-6)" id="bg-selector-group">
           <label class="form-label">Workspace Background</label>
           <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap:12px; margin-top:8px;">
@@ -289,9 +328,35 @@ const SettingsPage = (() => {
       </div>
     `;
 
+    // Material theme toggle handler
+    const matToggle = container.querySelector('#set-material-toggle');
+    const themeSelect = container.querySelector('#set-theme-select');
+    
+    matToggle.addEventListener('change', e => {
+      const enabled = !!e.target.checked;
+      _setMaterialThemeState(enabled);
+      _applyMaterialTheme(enabled);
+      
+      // Lock/unlock theme select and force light theme if enabling
+      if (enabled) {
+        themeSelect.disabled = true;
+        themeSelect.value = 'light';
+        document.getElementById('set-theme-select').parentElement.parentElement.querySelector('p')?.remove();
+        const lockNotice = document.createElement('p');
+        lockNotice.style.cssText = 'font-size:12px;color:var(--color-text-secondary);margin-top:6px';
+        lockNotice.textContent = 'Theme selection is locked while Material Design is enabled.';
+        document.getElementById('set-theme-select').parentElement.appendChild(lockNotice);
+      } else {
+        themeSelect.disabled = false;
+        document.getElementById('set-theme-select').parentElement.querySelector('p')?.remove();
+      }
+      
+      UIKit.toast(`Material Design ${enabled ? 'enabled' : 'disabled'}.`, 'success');
+    });
+
     let selectedBgTheme = s.bgTheme || 'default';
 
-    // Thumbnail click listener — re-attach onclick for guaranteed binding
+    // Thumbnail click listener
     container.querySelectorAll('.theme-thumb').forEach(thumb => {
       const tId = thumb.getAttribute('data-theme-id');
       thumb.addEventListener('click', (e) => {
@@ -307,7 +372,7 @@ const SettingsPage = (() => {
     });
 
     container.querySelector('#btn-save-appearance').addEventListener('click', () => {
-      const themeVal = document.getElementById('set-theme-select').value;
+      const themeVal = materialEnabled ? 'light' : document.getElementById('set-theme-select').value;
       const data = { ...s, theme: themeVal, bgTheme: selectedBgTheme };
       SettingsManager.save(data);
       UIKit.toast('Appearance preferences saved.', 'success');
@@ -672,39 +737,9 @@ const SettingsPage = (() => {
               <div class="timeline-dot active"></div>
               <h4 class="timeline-title">v1.2.1 <span class="timeline-date">July 6, 2026 (Current)</span></h4>
               <ul class="timeline-list">
+                <li><strong>Feature:</strong> Added Material Design 3 theme system with ripple effects and elevation tokens.</li>
+                <li><strong>Feature:</strong> Material Design toggle in Settings > Appearance with theme locking.</li>
                 <li><strong>UX Enhancement:</strong> Tweaked sidebar layout aesthetics by making the sidebar right border, sidebar logo bottom border, and sidebar footer top border transparent.</li>
-                <li><strong>UX Enhancement:</strong> Adjusted header styling to have a transparent background, no backdrop filter, and no box shadow.</li>
-                <li><strong>UX Enhancement:</strong> Added 1-word titles under the quick access buttons in the ICS Records right context panel.</li>
-                <li><strong>UX Enhancement:</strong> Removed bottom paddings and margins from context panel body and inspector cards for a tighter layout.</li>
-                <li><strong>UX Enhancement:</strong> Unified filter dropdowns and list/grid toggle buttons into a single clean combined row in the ICS Records workspace.</li>
-                <li><strong>UX Enhancement:</strong> Aligned workspace control items (filters, view toggles) to the right and unified control sizes to 32px height.</li>
-                <li><strong>UX Enhancement:</strong> Custom-tailored segmented switcher styles for view toggles with elegant backgrounds and dark theme fallbacks.</li>
-                <li><strong>UX Enhancement:</strong> Refined workspace control row by removing redundant status dropdown and integrating a reactive active-filter count badge on the Filter button.</li>
-                <li><strong>UX Enhancement:</strong> Re-designed report and record viewer tabs to use a premium, modern pill-shaped design with theme-aware translucent colors.</li>
-                <li><strong>UX Enhancement:</strong> Added matching SVG icons inside the report categories switcher tabs for improved visual scanning.</li>
-                <li><strong>UX Enhancement:</strong> Refined Reports interface with a collapsible filter panel and a new compact, unpadded search bar with inline quick-filter capabilities.</li>
-                <li><strong>UX Enhancement:</strong> Grouped the notifications list feed with custom, theme-friendly temporal timeline headers, designing them as compact, borderless list rows with a transparent background, center-aligned items, and subtle bottom dividers.</li>
-                <li><strong>UX Enhancement:</strong> Redesigned timeline headers to use sticky, transparent backdrop-filtered 22px headers, prepending collapsible carets and animated clock icons with hover scaling.</li>
-                <li><strong>UX Enhancement:</strong> Rebuilt the toast notification system with a physics-based bounce transition, border-left colored status lines, and full light/dark theme surface adaptability.</li>
-                <li><strong>UX Enhancement:</strong> Redesigned the main dashboard stat cards grid to be fully fluid and horizontally oriented with compact flex layout styling.</li>
-                <li><strong>UX Enhancement:</strong> Added personalized time-aware greetings and a Customize button in the main hero header.</li>
-                <li><strong>Feature:</strong> Added native drag-and-drop sort functionality to rearrange dashboard statistics cards in real-time.</li>
-                <li><strong>Feature:</strong> Added desktop system notifications request prompt on page load for dynamic event alerting.</li>
-                <li><strong>Feature:</strong> Added an enhanced dynamic "Urgent Attention Required" widget to the top of the dashboard with two-tiered hover scaling cards.</li>
-                <li><strong>Feature:</strong> Added customizable stat cards for "Total Inventory Value" and widgets for "Distribution by Office".</li>
-                <li><strong>UX Enhancement:</strong> Refined mobile responsiveness for customization drawer transitions and dashboard hero button wraps.</li>
-                <li><strong>UX Enhancement:</strong> Fixed page header and subtitle indentation across workspace and list layouts.</li>
-                <li><strong>UX Enhancement:</strong> Relocated the "Mark all read" action to render as an inline text link inside the primary timeline header.</li>
-                <li><strong>UX Enhancement:</strong> Unified persistent persistent panel and slide-over context drawer rendering with real-time sync capabilities.</li>
-                <li><strong>UX Enhancement:</strong> Redesigned Notifications right context panel to show real-time notification summaries and automated integrity engine status cards.</li>
-                <li><strong>Fix:</strong> Corrected tablet portrait viewport layout by maintaining flex layouts to prevent sidebar content offsets.</li>
-                <li><strong>UX Enhancement:</strong> Restricted full-width context drawer to mobile views, preserving standard width (360px) in tablet portrait.</li>
-                <li><strong>UX Enhancement:</strong> Upgraded dashboard right context panel with database statistics hover cards and circular health gauges.</li>
-                <li><strong>UX Enhancement:</strong> Set context panel body and drawer overlays to transparent backgrounds.</li>
-                <li><strong>UX Enhancement:</strong> Added orientation-aware context drawer theme styles (soft solid backgrounds in portrait, transparent backgrounds in landscape).</li>
-                <li><strong>UX Enhancement:</strong> Removed all vertical layout borders and zeroed out app container gaps for a seamless borderless layout design.</li>
-                <li><strong>Feature:</strong> Added custom workspace background selectors (Default, Slate, Sunset, Ocean, Mountain) in the settings appearance tab, complete with dark-theme adaptive glassmorphism overrides.</li>
-                <li><strong>Feature:</strong> Added per-theme accent color system — each workspace background theme now updates the application's primary color, hover states, and soft glow variants to match.</li>
               </ul>
             </div>
 
@@ -713,24 +748,6 @@ const SettingsPage = (() => {
               <h4 class="timeline-title">v1.2.0 <span class="timeline-date">July 2026</span></h4>
               <ul class="timeline-list">
                 <li><strong>Major Update:</strong> Refactored the Developer Panel to use a clean grid layout, staging badge indicator, and a custom dark-theme JSON syntax viewer.</li>
-                <li><strong>Feature:</strong> Built an integrated, mobile-optimized global search bar that replicates search queries with touch-friendly layouts.</li>
-                <li><strong>Fix:</strong> Prevented mobile search box from rendering on top of the slide-in sidebar menu by adjusting its stacking context z-index.</li>
-                <li><strong>Fix:</strong> Removed height and max-height constraints from widgets and cards in phase5.css to enable natural vertical layout expansion.</li>
-                <li><strong>Fix:</strong> Repaired mobile dashboard flex collapse bug preventing widget cards from rendering by adding flex-shrink: 0 rules.</li>
-                <li><strong>UX Enhancement:</strong> Repositioned the sidebar notification badge to float absolutely over the icon for better visual alignment.</li>
-                <li><strong>Fix:</strong> Removed the legacy online/offline indicator from the header actions bar.</li>
-                <li><strong>Feature:</strong> Integrated matching SVG icons next to all settings page titles for a richer, more polished desktop-grade design.</li>
-                <li><strong>Fix:</strong> Repaired sidebar collapsing behavior on tablets (768px - 1024px) to allow manual toggling and proper orientation auto-rotation updates.</li>
-                <li><strong>Fix:</strong> Resolved Settings vertical alignment displacement (184px gap) by removing sidebar sticky offsets and layout margins.</li>
-                <li><strong>Fix:</strong> Standardized top alignment and vertical margins across the Dashboard and Settings workspace containers to prevent layout shifts.</li>
-                <li><strong>Fix:</strong> Changed PWA orientation to "any" in manifest.json to allow landscape mode and proper auto-rotation on tablets.</li>
-                <li><strong>UX Enhancement:</strong> Allowed long asset descriptions in the watchlist to wrap on mobile devices rather than getting truncated.</li>
-                <li><strong>Fix:</strong> Prevented Settings navigation button icons from squishing and disappearing on mobile devices.</li>
-                <li><strong>UX Enhancement:</strong> Redesigned the Dashboard Watchlist row layout to stack vertically on mobile screens to prevent overflow and ensure readability.</li>
-                <li><strong>Fix:</strong> Repaired the dashboard widgets column layout to properly stack vertically on mobile (below 900px) instead of remaining squished side-by-side.</li>
-                <li><strong>UX Enhancement:</strong> Completely hid generic OS scrollbars application-wide for a seamless flat aesthetic.</li>
-                <li><strong>Theming:</strong> Upgraded the dark mode top navigation bar to use a proper glass-morphism translucent dark slate backdrop.</li>
-                <li><strong>Fix:</strong> Repaired mobile Z-Index stacking bugs where the overlay backdrop would accidentally block sidebar inputs.</li>
               </ul>
             </div>
 
@@ -739,8 +756,6 @@ const SettingsPage = (() => {
               <h4 class="timeline-title">v1.1.0 <span class="timeline-date">June 2026</span></h4>
               <ul class="timeline-list">
                 <li><strong>Feature:</strong> Introduced the Automated Integrity Engine for background data scanning and validation.</li>
-                <li><strong>Feature:</strong> Built the Notifications feed interface for End of Useful Life (EUL) warnings.</li>
-                <li><strong>Performance:</strong> Accelerated DOM rendering during database restore operations.</li>
               </ul>
             </div>
 
@@ -749,7 +764,6 @@ const SettingsPage = (() => {
               <h4 class="timeline-title">v1.0.0 <span class="timeline-date">May 2026</span></h4>
               <ul class="timeline-list">
                 <li><strong>Initial Release:</strong> Local-first IndexedDB Property Custodian system launched.</li>
-                <li><strong>Feature:</strong> Core functionalities for Issuance, Records tracking, Settings, and PDF exports.</li>
               </ul>
             </div>
           </div>
@@ -812,7 +826,7 @@ const SettingsPage = (() => {
     });
   }
 
-  /* ── Tab: Developer Panel (Hidden) ── */
+  /* ── Tab: Developer Panel ── */
   function _renderDeveloperTab(container) {
     const sliceData = _allRecords.slice(0, 3);
     const highlightedJson = JSON.stringify(sliceData, null, 2)
@@ -820,7 +834,7 @@ const SettingsPage = (() => {
       .replace(/</g, '&lt;')
       .replace(/>/g, '&gt;')
       .replace(/"([^"]+)":/g, '<span style="color:#fbbf24">"$1"</span>:')
-      .replace(/:\s*("[^"]*")/g, ': <span style="color:#34d399">$1</span>')
+      .replace(/:\s*(".*?")/g, ': <span style="color:#34d399">$1</span>')
       .replace(/:\s*(\d+(\.\d+)?)/g, ': <span style="color:#f472b6">$1</span>');
 
     container.innerHTML = `
@@ -835,6 +849,20 @@ const SettingsPage = (() => {
           </div>
           <div style="background:var(--color-warning-light); color:var(--color-warning); padding:6px 12px; border-radius:var(--radius-md); font-size:12px; font-weight:600; border:1px solid var(--color-warning-light)">
             Staging Mode Active
+          </div>
+        </div>
+
+        <!-- Material Theme Preview Section -->
+        <div style="margin-top:var(--space-6); display:flex; gap:12px; align-items:center; background:var(--color-info-light); padding:var(--space-4); border-radius:var(--radius-md)">
+          <div style="flex:1">
+            <div style="font-weight:600">Material Theme (Developer preview)</div>
+            <div style="font-size:12px; color:var(--color-text-secondary)">This is the Material Design 3 token system. Also available in Settings > Appearance.</div>
+          </div>
+          <div style="flex-shrink:0; display:flex; align-items:center; gap:8px">
+            <label style="display:flex; align-items:center; gap:8px; cursor:pointer">
+              <input type="checkbox" id="set-material-checkbox"${_getMaterialThemeState() ? ' checked' : ''}>
+              <span style="font-size:13px">Enable</span>
+            </label>
           </div>
         </div>
       </div>
@@ -877,6 +905,21 @@ const SettingsPage = (() => {
         </div>
       </div>
     `;
+
+    // Ensure material theme is applied when rendering developer tab
+    _applyMaterialTheme(_getMaterialThemeState());
+
+    // Wire material checkbox
+    const matCheckbox = container.querySelector('#set-material-checkbox');
+    if (matCheckbox) {
+      matCheckbox.addEventListener('change', e => {
+        const enabled = !!e.target.checked;
+        _setMaterialThemeState(enabled);
+        _applyMaterialTheme(enabled);
+        UIKit.toast(`Material theme ${enabled ? 'enabled' : 'disabled'}.`, 'info');
+      });
+    }
+
     container.querySelector('#btn-dev-populate').addEventListener('click', async () => {
       const confirmed = await UIKit.confirm({
         title:       'Populate Mock Data',
@@ -892,7 +935,6 @@ const SettingsPage = (() => {
       UIKit.toast('Mock Data Populated.', 'success');
       _loadRecordsAndRender(container.parentNode);
     });
-
 
     container.querySelector('#btn-dev-seed').addEventListener('click', async () => {
       const confirmed = await UIKit.confirm({
