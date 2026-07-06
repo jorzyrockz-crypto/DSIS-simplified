@@ -20,7 +20,7 @@
 
   <!-- Favicon (inline SVG data URI — no external dependency) -->
   <link rel="icon" type="image/svg+xml"
-        href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%232563EB'/><text x='50%25' y='55%25' dominant-baseline='middle' text-anchor='middle' font-family='system-ui,sans-serif' font-size='11' font-weight='700' fill='white'>ICS</text></svg>" />
+        href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%232563EB'/><text x='50%25' y='55%25' dominant-baseline='midd[...]
   <link rel="manifest" href="manifest.json" />
 
   <!-- Google Fonts — loaded with display=swap so app works while font fetches -->
@@ -43,6 +43,7 @@
   <link rel="stylesheet" href="css/phase6.css" />
   <!-- Phase 7: Production Polish, Offline PWA, Performance Optimization & Future Expansion Framework -->
   <link rel="stylesheet" href="css/phase7.css" />
+  <link rel="stylesheet" href="css/material-theme.css" />
 </head>
 
 <body>
@@ -65,7 +66,7 @@
     ═══════════════════════════════════════════════════════════
   -->
 
-  <!-- ── Mobile Overlay ── -->
+  <!-- ���─ Mobile Overlay ── -->
   <div id="overlay" class="overlay" role="presentation" aria-hidden="true"></div>
 
   <!-- ── Context Drawer (tablet/mobile slide-over) ── -->
@@ -97,7 +98,7 @@
       <!-- MOBILE SEARCH BAR -->
       <div id="mobile-search-bar">
         <div class="search-box">
-          <span class="search-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span>
+          <span class="search-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" [...]
           <input
             type="search"
             id="mobile-global-search"
@@ -105,7 +106,7 @@
             aria-label="Mobile global search"
             autocomplete="off"
           />
-          <span id="mobile-search-clear" class="clear-icon" style="display:none"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span>
+          <span id="mobile-search-clear" class="clear-icon" style="display:none"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColo[...]
         </div>
         <div id="mobile-search-suggestions"></div>
       </div>
