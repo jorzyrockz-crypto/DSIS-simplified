@@ -3210,35 +3210,38 @@ body.workspace-enhanced-bg {
   transition: background 0.5s ease-in-out, background-color 0.5s ease !important;
 }
 
-/* Unify Top Navbar, Sidebar, and Right Panel backgrounds */
-body.workspace-enhanced-bg header#header,
+/* Force layout components and cards to respect the dynamic opacity variable */
 body.workspace-enhanced-bg #sidebar,
 body.workspace-enhanced-bg #context-panel,
 body.workspace-enhanced-bg #context-drawer,
 body.workspace-enhanced-bg .panel-header,
 body.workspace-enhanced-bg .drawer-handle {
-  background: rgba(255, 255, 255, 0.05) !important;
+  background: var(--workspace-glass-bg, rgba(255, 255, 255, 0.05)) !important;
   backdrop-filter: blur(30px) saturate(150%) !important;
   -webkit-backdrop-filter: blur(30px) saturate(150%) !important;
   border: none !important;
   border-right: 1px solid rgba(255, 255, 255, 0.1) !important; /* Subtle separator for sidebar */
   border-left: 1px solid rgba(255, 255, 255, 0.1) !important;  /* Subtle separator for right panel */
   box-shadow: none !important;
+  filter: brightness(1.05); /* Slight lift */
 }
 
-/* Adjust separators based on which side they are on */
 body.workspace-enhanced-bg header#header {
-   border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
-   border-left: none !important;
-   border-right: none !important;
+  background: var(--workspace-glass-bg, rgba(255, 255, 255, 0.05)) !important;
+  backdrop-filter: blur(30px) saturate(150%) !important;
+  -webkit-backdrop-filter: blur(30px) saturate(150%) !important;
+  border: none !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+  box-shadow: none !important;
 }
 
-/* Make content cards float on top of the blurred background */
 body.workspace-enhanced-bg .context-card,
 body.workspace-enhanced-bg .stat-card,
 body.workspace-enhanced-bg .notif-card,
-body.workspace-enhanced-bg .inspector-card {
-  background: rgba(255, 255, 255, 0.6) !important;
+body.workspace-enhanced-bg .inspector-card,
+body.workspace-enhanced-bg #workspace,
+body.workspace-enhanced-bg .hero-section {
+  background: var(--workspace-glass-bg, rgba(255, 255, 255, 0.6)) !important;
   backdrop-filter: blur(10px) !important;
   border: 1px solid rgba(255, 255, 255, 0.2) !important;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05) !important;
@@ -3248,6 +3251,11 @@ body.workspace-enhanced-bg .inspector-card {
 body.workspace-enhanced-bg #context-panel-body,
 body.workspace-enhanced-bg #context-drawer-body {
   background: transparent !important;
+}
+
+/* Transition for smooth opacity changes */
+#sidebar, #context-panel, .context-card, #workspace {
+   transition: background 0.15s ease-out !important;
 }
 
 /* Normalize workspace spacing to fix perceived header height issue */

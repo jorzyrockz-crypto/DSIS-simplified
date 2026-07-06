@@ -588,13 +588,17 @@ function initContextSync() {
    App Bootstrap
    ============================================================ */
 function bootstrap() {
-  // Apply theme preset immediately to avoid flash
   try {
     const s = SettingsManager.get();
     if (s.theme) document.documentElement.setAttribute('data-theme', s.theme);
     if (s.bgTheme && window.applyAppTheme) {
       window.applyAppTheme(s.bgTheme);
     }
+    // Restore card/panel background tint opacity with theme-aware colors
+    const savedOpacity = s.bgOpacity || '75';
+    const activeThemeMode = s.theme || 'light';
+    const rgb = activeThemeMode === 'dark' ? '31, 31, 32' : '255, 255, 255';
+    document.documentElement.style.setProperty('--workspace-glass-bg', `rgba(${rgb}, ${savedOpacity / 100})`);
   } catch {}
 
   // Collect DOM references

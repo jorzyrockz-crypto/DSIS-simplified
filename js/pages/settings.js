@@ -331,6 +331,16 @@ const SettingsPage = (() => {
           </div>
         </div>
 
+        <!-- Background Tint Opacity Slider -->
+        <div class="opacity-control-group" style="margin-top: 24px; padding: 16px; background: var(--color-surface-alt); border-radius: 12px; border: 1px solid var(--color-border); margin-bottom: 24px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+              <label style="font-size:13px; font-weight:700; color:var(--color-text-primary);">Background Tint Opacity</label>
+              <span id="opacity-val-label" style="font-size:12px; font-weight:600; color:var(--color-primary);">75%</span>
+          </div>
+          <input type="range" id="bg-opacity-slider" min="10" max="100" value="75" style="width:100%; height:6px; border-radius:5px; background:var(--color-border); outline:none; -webkit-appearance:none; cursor:pointer;">
+          <p style="font-size:11px; color:var(--color-text-tertiary); margin-top:8px;">Adjust how much the background image shines through your workspace cards and panels.</p>
+        </div>
+
         <button class="btn btn-primary" id="btn-save-appearance">Apply Theme Settings</button>
       </div>
     `;
@@ -378,9 +388,34 @@ const SettingsPage = (() => {
       };
     });
 
+    // Opacity slider logic
+    const slider = container.querySelector('#bg-opacity-slider');
+    const label = container.querySelector('#opacity-val-label');
+
+    const updateOpacity = (val) => {
+      const opacity = val / 100;
+      label.textContent = `${val}%`;
+      
+      // Support dark mode card tint matching the active theme mode!
+      const activeThemeMode = document.getElementById('set-theme-select')?.value || s.theme || 'light';
+      const rgb = activeThemeMode === 'dark' ? '31, 31, 32' : '255, 255, 255';
+      document.documentElement.style.setProperty('--workspace-glass-bg', `rgba(${rgb}, ${opacity})`);
+    };
+
+    if (slider && label) {
+      const savedOpacity = s.bgOpacity || '75';
+      slider.value = savedOpacity;
+      updateOpacity(savedOpacity);
+
+      slider.addEventListener('input', e => {
+        updateOpacity(e.target.value);
+      });
+    }
+
     container.querySelector('#btn-save-appearance').addEventListener('click', () => {
       const themeVal = materialEnabled ? 'light' : document.getElementById('set-theme-select').value;
-      const data = { ...s, theme: themeVal, bgTheme: selectedBgTheme };
+      const opacityVal = document.getElementById('bg-opacity-slider').value;
+      const data = { ...s, theme: themeVal, bgTheme: selectedBgTheme, bgOpacity: opacityVal };
       SettingsManager.save(data);
       UIKit.toast('Appearance preferences saved.', 'success');
     });
@@ -750,6 +785,7 @@ const SettingsPage = (() => {
                 <li><strong>UX Enhancement:</strong> Relocated and integrated the Experimental Features panel inside the Developer grid, utilizing uppercase Zinc 400 headers and custom checkbox variables.</li>
                 <li><strong>Fix:</strong> Corrected header height to a strict 60px size and adjusted global workspace layouts to normalize top spacings and padding.</li>
                 <li><strong>UX Enhancement:</strong> Unified top header, sidebar, and drawer background overlays into a single translucent glass layout with border separators.</li>
+                <li><strong>Feature:</strong> Introduced a Background Tint Opacity slider with real-time UI previews and local settings locking.</li>
               </ul>
             </div>
 

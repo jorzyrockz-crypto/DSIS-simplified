@@ -25,7 +25,8 @@ const SettingsManager = (() => {
     yearPrefix: true,
     manualOverride: false,
     theme: 'light',
-    bgTheme: 'default'
+    bgTheme: 'default',
+    bgOpacity: '75'
   };
 
   const themes = [
