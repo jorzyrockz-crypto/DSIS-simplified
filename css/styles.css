@@ -3210,27 +3210,43 @@ body.workspace-enhanced-bg {
   transition: background 0.5s ease-in-out, background-color 0.5s ease !important;
 }
 
-/* Force layout components to respect the dynamic opacity variable */
+/* Unify all panels to ensure wallpaper consistency across the layout */
+body.workspace-enhanced-bg header#header,
 body.workspace-enhanced-bg #sidebar,
 body.workspace-enhanced-bg #context-panel,
-body.workspace-enhanced-bg #context-drawer {
-  background: var(--workspace-glass-bg, rgba(255, 255, 255, 0.05)) !important;
-  backdrop-filter: blur(30px) saturate(150%) !important;
-  -webkit-backdrop-filter: blur(30px) saturate(150%) !important;
-  border: none !important;
-  border-right: 1px solid rgba(255, 255, 255, 0.1) !important; /* Subtle separator for sidebar */
-  border-left: 1px solid rgba(255, 255, 255, 0.1) !important;  /* Subtle separator for right panel */
+body.workspace-enhanced-bg #context-drawer,
+body.workspace-enhanced-bg main,
+body.workspace-enhanced-bg .wizard-sticky-bar {
+  /* Shared Glassmorphism Spec */
+  backdrop-filter: blur(25px) saturate(150%) !important;
+  -webkit-backdrop-filter: blur(25px) saturate(150%) !important;
+  
+  /* Shared Background Color (from Slider) */
+  background-color: var(--workspace-glass-bg, rgba(255, 255, 255, 0.4)) !important;
+  
+  /* Remove conflicting background images/gradients */
+  background-image: none !important;
+  
+  /* Smooth transitions */
+  transition: background-color 0.2s ease, backdrop-filter 0.2s ease !important;
   box-shadow: none !important;
-  filter: brightness(1.05); /* Slight lift */
+}
+
+/* Specific borders and separators for layouts */
+body.workspace-enhanced-bg #sidebar {
+  border: none !important;
+  border-right: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+body.workspace-enhanced-bg #context-panel,
+body.workspace-enhanced-bg #context-drawer {
+  border: none !important;
+  border-left: 1px solid rgba(255, 255, 255, 0.1) !important;
 }
 
 body.workspace-enhanced-bg header#header {
-  background: var(--workspace-glass-bg, rgba(255, 255, 255, 0.05)) !important;
-  backdrop-filter: blur(30px) saturate(150%) !important;
-  -webkit-backdrop-filter: blur(30px) saturate(150%) !important;
   border: none !important;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
-  box-shadow: none !important;
 }
 
 body.workspace-enhanced-bg .context-card,
