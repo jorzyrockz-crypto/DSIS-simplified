@@ -3348,3 +3348,13 @@ body.workspace-enhanced-bg .review-block textarea {
 body.workspace-enhanced-bg .review-block svg {
   opacity: 0.9;
 }
+
+/* Styling for items-table-wrap */
+.items-table-wrap {
+  background-color: rgba(255, 255, 255, 0.5) !important;
+  backdrop-filter: blur(10px) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
+  padding: 20px !important;
+  border-radius: 12px !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 24px 10px -1px rgba(0, 0, 0, 0.05) !important;
+}
