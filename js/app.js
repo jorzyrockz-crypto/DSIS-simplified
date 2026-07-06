@@ -599,6 +599,16 @@ function bootstrap() {
     const activeThemeMode = s.theme || 'light';
     const rgb = activeThemeMode === 'dark' ? '31, 31, 32' : '255, 255, 255';
     document.documentElement.style.setProperty('--workspace-glass-bg', `rgba(${rgb}, ${savedOpacity / 100})`);
+
+    // Restore glass section toggles on launch
+    if (window.updateWorkspaceGlassToggles) {
+      window.updateWorkspaceGlassToggles({
+        header: s.applyGlassHeader !== false,
+        sidebar: s.applyGlassSidebar !== false,
+        center: s.applyGlassCenter !== false,
+        right: s.applyGlassRight !== false
+      });
+    }
   } catch {}
 
   // Collect DOM references

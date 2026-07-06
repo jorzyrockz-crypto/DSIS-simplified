@@ -332,13 +332,32 @@ const SettingsPage = (() => {
         </div>
 
         <!-- Background Tint Opacity Slider -->
-        <div class="opacity-control-group" style="margin-top: 24px; padding: 16px; background: var(--color-surface-alt); border-radius: 12px; border: 1px solid var(--color-border); margin-bottom: 24px;">
+        <div class="opacity-control-group" style="margin-top: 24px; padding: 16px; background: var(--color-surface-alt); border-radius: 12px; border: 1px solid var(--color-border); margin-bottom: 20px;">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
               <label style="font-size:13px; font-weight:700; color:var(--color-text-primary);">Background Tint Opacity</label>
               <span id="opacity-val-label" style="font-size:12px; font-weight:600; color:var(--color-primary);">75%</span>
           </div>
           <input type="range" id="bg-opacity-slider" min="10" max="100" value="75" style="width:100%; height:6px; border-radius:5px; background:var(--color-border); outline:none; -webkit-appearance:none; cursor:pointer;">
           <p style="font-size:11px; color:var(--color-text-tertiary); margin-top:8px;">Adjust how much the background image shines through your workspace cards and panels.</p>
+        </div>
+
+        <!-- Theme Application Toggles -->
+        <div class="theme-application-toggles" style="margin-top: 0; padding: 16px; background: var(--color-surface-alt); border-radius: 12px; border: 1px solid var(--color-border); margin-bottom: 24px;">
+          <label style="font-size:13px; font-weight:700; color:var(--color-text-primary); display:block; margin-bottom:12px; margin-top:0;">Apply Transparency To:</label>
+          <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
+            <label style="display:flex; align-items:center; gap:8px; font-size:12px; cursor:pointer; user-select:none; margin:0">
+              <input type="checkbox" id="glass-apply-header"${s.applyGlassHeader !== false ? ' checked' : ''} style="width:16px; height:16px;"> Top Nav Bar
+            </label>
+            <label style="display:flex; align-items:center; gap:8px; font-size:12px; cursor:pointer; user-select:none; margin:0">
+              <input type="checkbox" id="glass-apply-sidebar"${s.applyGlassSidebar !== false ? ' checked' : ''} style="width:16px; height:16px;"> Left Panel (Sidebar)
+            </label>
+            <label style="display:flex; align-items:center; gap:8px; font-size:12px; cursor:pointer; user-select:none; margin:0">
+              <input type="checkbox" id="glass-apply-center"${s.applyGlassCenter !== false ? ' checked' : ''} style="width:16px; height:16px;"> Center Panel
+            </label>
+            <label style="display:flex; align-items:center; gap:8px; font-size:12px; cursor:pointer; user-select:none; margin:0">
+              <input type="checkbox" id="glass-apply-right"${s.applyGlassRight !== false ? ' checked' : ''} style="width:16px; height:16px;"> Right Panel
+            </label>
+          </div>
         </div>
 
         <button class="btn btn-primary" id="btn-save-appearance">Apply Theme Settings</button>
@@ -412,10 +431,41 @@ const SettingsPage = (() => {
       });
     }
 
+    // Glass section toggle handlers
+    const updateToggles = () => {
+      const header = container.querySelector('#glass-apply-header').checked;
+      const sidebar = container.querySelector('#glass-apply-sidebar').checked;
+      const center = container.querySelector('#glass-apply-center').checked;
+      const right = container.querySelector('#glass-apply-right').checked;
+
+      if (window.updateWorkspaceGlassToggles) {
+        window.updateWorkspaceGlassToggles({ header, sidebar, center, right });
+      }
+    };
+
+    container.querySelectorAll('.theme-application-toggles input[type="checkbox"]').forEach(cb => {
+      cb.addEventListener('change', updateToggles);
+    });
+
     container.querySelector('#btn-save-appearance').addEventListener('click', () => {
       const themeVal = materialEnabled ? 'light' : document.getElementById('set-theme-select').value;
       const opacityVal = document.getElementById('bg-opacity-slider').value;
-      const data = { ...s, theme: themeVal, bgTheme: selectedBgTheme, bgOpacity: opacityVal };
+      
+      const applyHeaderVal = document.getElementById('glass-apply-header').checked;
+      const applySidebarVal = document.getElementById('glass-apply-sidebar').checked;
+      const applyCenterVal = document.getElementById('glass-apply-center').checked;
+      const applyRightVal = document.getElementById('glass-apply-right').checked;
+
+      const data = { 
+        ...s, 
+        theme: themeVal, 
+        bgTheme: selectedBgTheme, 
+        bgOpacity: opacityVal,
+        applyGlassHeader: applyHeaderVal,
+        applyGlassSidebar: applySidebarVal,
+        applyGlassCenter: applyCenterVal,
+        applyGlassRight: applyRightVal
+      };
       SettingsManager.save(data);
       UIKit.toast('Appearance preferences saved.', 'success');
     });
@@ -786,6 +836,7 @@ const SettingsPage = (() => {
                 <li><strong>Fix:</strong> Corrected header height to a strict 60px size and adjusted global workspace layouts to normalize top spacings and padding.</li>
                 <li><strong>UX Enhancement:</strong> Unified top header, sidebar, and drawer background overlays into a single translucent glass layout with border separators.</li>
                 <li><strong>Feature:</strong> Introduced a Background Tint Opacity slider with real-time UI previews and local settings locking.</li>
+                <li><strong>Feature:</strong> Added granular layout transparency checkboxes to select which workspace panels should use the background glassmorphism system.</li>
               </ul>
             </div>
 

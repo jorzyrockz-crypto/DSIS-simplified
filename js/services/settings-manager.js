@@ -26,7 +26,11 @@ const SettingsManager = (() => {
     manualOverride: false,
     theme: 'light',
     bgTheme: 'default',
-    bgOpacity: '75'
+    bgOpacity: '75',
+    applyGlassHeader: true,
+    applyGlassSidebar: true,
+    applyGlassCenter: true,
+    applyGlassRight: true
   };
 
   const themes = [
@@ -173,10 +177,40 @@ const SettingsManager = (() => {
           try { window.applyAppTheme(DEFAULTS.bgTheme); } catch (e) {}
         }
       }
+      // Apply glass section toggles immediately
+      if (window.updateWorkspaceGlassToggles) {
+        window.updateWorkspaceGlassToggles({
+          header: settings.applyGlassHeader !== false,
+          sidebar: settings.applyGlassSidebar !== false,
+          center: settings.applyGlassCenter !== false,
+          right: settings.applyGlassRight !== false
+        });
+      }
     } catch (err) {
       console.error('[SettingsManager] Save error:', err);
     }
   }
+
+  // Global toggle stylesheet renderer
+  window.updateWorkspaceGlassToggles = (settings) => {
+    let style = document.getElementById('theme-section-logic');
+    if (!style) {
+      style = document.createElement('style');
+      style.id = 'theme-section-logic';
+      document.head.appendChild(style);
+    }
+
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    const fallbackBg = isDark ? '#1e293b' : '#ffffff';
+    const fallbackBorder = isDark ? '#334155' : '#e4e4e7';
+
+    style.innerHTML = `
+      ${!settings.header ? `body.workspace-enhanced-bg header#header { background: ${fallbackBg} !important; backdrop-filter: none !important; -webkit-backdrop-filter: none !important; border-bottom: 1px solid ${fallbackBorder} !important; }` : ''}
+      ${!settings.sidebar ? `body.workspace-enhanced-bg #sidebar { background: ${fallbackBg} !important; backdrop-filter: none !important; -webkit-backdrop-filter: none !important; border-right: 1px solid ${fallbackBorder} !important; }` : ''}
+      ${!settings.center ? `body.workspace-enhanced-bg #workspace, body.workspace-enhanced-bg .context-card, body.workspace-enhanced-bg .stat-card, body.workspace-enhanced-bg .notif-card, body.workspace-enhanced-bg .inspector-card, body.workspace-enhanced-bg .hero-section { background: ${fallbackBg} !important; backdrop-filter: none !important; -webkit-backdrop-filter: none !important; border: 1px solid ${fallbackBorder} !important; box-shadow: none !important; }` : ''}
+      ${!settings.right ? `body.workspace-enhanced-bg #context-panel, body.workspace-enhanced-bg #context-drawer, body.workspace-enhanced-bg .panel-header, body.workspace-enhanced-bg .drawer-handle { background: ${fallbackBg} !important; backdrop-filter: none !important; -webkit-backdrop-filter: none !important; border-left: 1px solid ${fallbackBorder} !important; box-shadow: none !important; }` : ''}
+    `;
+  };
 
   return { get, save, DEFAULTS, themes };
 })();
