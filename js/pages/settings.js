@@ -838,6 +838,7 @@ const SettingsPage = (() => {
                 <li><strong>Feature:</strong> Introduced a Background Tint Opacity slider with real-time UI previews and local settings locking.</li>
                 <li><strong>Feature:</strong> Added granular layout transparency checkboxes to select which workspace panels should use the background glassmorphism system.</li>
                 <li><strong>UX Enhancement:</strong> Integrated the new ICS wizard components into the dynamic glassmorphism theme and center panel toggles.</li>
+                <li><strong>Fix:</strong> Removed double-layer background overlays from context panel headers and drawer handles to ensure transparent backgrounds.</li>
               </ul>
             </div>
 
