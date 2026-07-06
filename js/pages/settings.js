@@ -6,13 +6,35 @@
 
 const SettingsPage = (() => {
 
-  const APP_VERSION = '1.2.1-stable';
-  const BUILD_DATE  = '2026-07-06';
+  const FORMAL_RELEASE_NOTES = Array.isArray(window.RELEASE_NOTES_DATA) && window.RELEASE_NOTES_DATA.length
+    ? window.RELEASE_NOTES_DATA
+    : [
+        {
+          version: '1.2.1-stable',
+          buildDate: '2026-07-06',
+          dateLabel: 'July 6, 2026',
+          current: true,
+          items: [
+            { type: 'Feature', text: 'Release notes data source unavailable. Showing fallback release notes.' }
+          ]
+        }
+      ];
+
+  const LIVE_CHANGE_LOG = Array.isArray(window.LIVE_CHANGE_LOG_DATA)
+    ? window.LIVE_CHANGE_LOG_DATA
+    : [];
+
+  const RELEASE_NOTES = [...LIVE_CHANGE_LOG, ...FORMAL_RELEASE_NOTES];
+
+  const CURRENT_RELEASE = FORMAL_RELEASE_NOTES[0];
+  const APP_VERSION = CURRENT_RELEASE.version;
+  const BUILD_DATE  = CURRENT_RELEASE.buildDate;
 
   let _activeTab = 'general';
   let _allRecords = [];
   let _contextBody = null;
   let _loadedBackup = null;
+  let _workspaceEl = null;
 
   function _getDevModeState() {
     try {
@@ -44,6 +66,80 @@ const SettingsPage = (() => {
 
   function _applyMaterialTheme(enabled) {
     try { document.documentElement.classList.toggle('material-theme', !!enabled); } catch {}
+  }
+
+  function _getReleaseItemMeta(type) {
+    const normalized = String(type || '').toLowerCase();
+
+    switch (normalized) {
+      case 'fix':
+        return { icon: 'check', chipClass: 'release-chip-fix' };
+      case 'ux enhancement':
+        return { icon: 'palette', chipClass: 'release-chip-ux' };
+      case 'major update':
+        return { icon: 'grid', chipClass: 'release-chip-major' };
+      case 'initial release':
+        return { icon: 'info', chipClass: 'release-chip-release' };
+      case 'feature':
+      default:
+        return { icon: 'package', chipClass: 'release-chip-feature' };
+    }
+  }
+
+  function _renderReleaseTimelineItems() {
+    return RELEASE_NOTES.map(release => {
+      const itemsHtml = release.items.map(item => {
+        const meta = _getReleaseItemMeta(item.type);
+        return `
+          <li class="timeline-entry ${meta.chipClass}">
+            <span class="release-type-chip ${meta.chipClass}">
+              ${Components.icon(meta.icon)}
+              <span>${Utils.escapeHtml(item.type)}</span>
+            </span>
+            <span class="timeline-entry-text">${Utils.escapeHtml(item.text)}</span>
+          </li>
+        `;
+      }).join('');
+
+      return `
+        <div class="timeline-item">
+          <div class="timeline-dot${release.current ? ' active' : ''}${release.live ? ' live' : ''}"></div>
+          <h4 class="timeline-title">${Utils.escapeHtml(release.version.replace('-stable', ''))} <span class="timeline-date">${Utils.escapeHtml(release.dateLabel)}${release.current ? ' (Current)' : ''}${release.live ? ' (Live)' : ''}</span></h4>
+          <ul class="timeline-list">
+            ${itemsHtml}
+          </ul>
+        </div>
+      `;
+    }).join('');
+  }
+
+  function _renderAnnouncementBanner() {
+    const previewItems = (CURRENT_RELEASE.items || []).slice(0, 3).map(item => {
+      const meta = _getReleaseItemMeta(item.type);
+      return `
+        <li class="release-banner-item">
+          <span class="release-type-chip ${meta.chipClass}">
+            ${Components.icon(meta.icon)}
+            <span>${Utils.escapeHtml(item.type)}</span>
+          </span>
+          <span class="release-banner-text">${Utils.escapeHtml(item.text)}</span>
+        </li>
+      `;
+    }).join('');
+
+    return `
+      <div class="release-announcement">
+        <div class="release-announcement-head">
+          <span class="release-announcement-badge">New Release</span>
+          <span class="release-announcement-version">${Utils.escapeHtml(APP_VERSION)}</span>
+        </div>
+        <h3 class="release-announcement-title">What changed in ${Utils.escapeHtml(APP_VERSION.replace('-stable', ''))}</h3>
+        <p class="release-announcement-subtitle">Released ${Utils.escapeHtml(CURRENT_RELEASE.dateLabel)}. Here are the biggest updates in this version.</p>
+        <ul class="release-banner-list">
+          ${previewItems}
+        </ul>
+      </div>
+    `;
   }
 
   /* ----------------------------------------------------------
@@ -109,9 +205,38 @@ const SettingsPage = (() => {
      Main Render
      ---------------------------------------------------------- */
   function render(workspace, contextBody) {
+    _workspaceEl = workspace;
     _contextBody = contextBody;
+    _syncActiveTabFromHash();
     _loadRecordsAndRender(workspace);
     if (contextBody) renderContext(contextBody);
+  }
+
+  function _syncActiveTabFromHash() {
+    try {
+      const rawHash = String(window.location.hash || '');
+      const query = rawHash.includes('?') ? rawHash.split('?')[1] : '';
+      if (!query) return;
+
+      const params = new URLSearchParams(query);
+      const requestedTab = params.get('tab');
+      if (requestedTab) {
+        _activeTab = requestedTab;
+      }
+    } catch {}
+  }
+
+  function openTab(tabId) {
+    if (!tabId) return;
+    _activeTab = tabId;
+
+    if (_workspaceEl) {
+      _renderWorkspace(_workspaceEl);
+    }
+
+    if (_contextBody) {
+      renderContext(_contextBody);
+    }
   }
 
   function _renderWorkspace(workspace) {
@@ -199,7 +324,7 @@ const SettingsPage = (() => {
           <p class="page-subtitle">Configure primary organization details, facility name, and foundational system defaults.</p>
         </div>
       </div>
-      <div class="review-block" style="margin:0;max-width:650px;border:none;box-shadow:none;padding:0;background:transparent">
+      <div class="review-block settings-form-shell" style="margin:0;max-width:650px;border:none;box-shadow:none;padding:0;background:transparent">
         <div class="form-group" style="margin-bottom:var(--space-4)">
           <label class="form-label">School Name</label>
           <input class="form-control" id="set-school" value="${Utils.escapeHtml(s.schoolName)}">
@@ -278,10 +403,10 @@ const SettingsPage = (() => {
           <p class="page-subtitle">Choose between light mode, sleek dark themes, and custom workspace backgrounds.</p>
         </div>
       </div>
-      <div class="review-block" style="margin:0;max-width:650px;border:none;box-shadow:none;padding:0;background:transparent">
+      <div class="review-block settings-form-shell" style="margin:0;max-width:650px;border:none;box-shadow:none;padding:0;background:transparent">
         
         <!-- Material Design Theme Toggle -->
-        <div style="margin-bottom:var(--space-6);padding:var(--space-4);background:var(--color-surface-alt);border:1px solid var(--color-border-light);border-radius:var(--radius-md)">
+        <div class="appearance-panel" style="margin-bottom:var(--space-6);padding:var(--space-4);border:1px solid var(--color-border-light);border-radius:var(--radius-md)">
           <div style="display:flex;gap:12px;align-items:flex-start">
             <div style="flex:1">
               <div style="font-weight:600;margin-bottom:4px">Material Design Theme</div>
@@ -332,7 +457,7 @@ const SettingsPage = (() => {
         </div>
 
         <!-- Background Tint Opacity Slider -->
-        <div class="opacity-control-group" style="margin-top: 24px; padding: 16px; background: var(--color-surface-alt); border-radius: 12px; border: 1px solid var(--color-border); margin-bottom: 20px;">
+        <div class="appearance-panel opacity-control-group" style="margin-top: 24px; padding: 16px; border-radius: 12px; border: 1px solid var(--color-border); margin-bottom: 20px;">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
               <label style="font-size:13px; font-weight:700; color:var(--color-text-primary);">Background Tint Opacity</label>
               <span id="opacity-val-label" style="font-size:12px; font-weight:600; color:var(--color-primary);">75%</span>
@@ -342,7 +467,7 @@ const SettingsPage = (() => {
         </div>
 
         <!-- Theme Application Toggles -->
-        <div class="theme-application-toggles" style="margin-top: 0; padding: 16px; background: var(--color-surface-alt); border-radius: 12px; border: 1px solid var(--color-border); margin-bottom: 24px;">
+        <div class="appearance-panel theme-application-toggles" style="margin-top: 0; padding: 16px; border-radius: 12px; border: 1px solid var(--color-border); margin-bottom: 24px;">
           <label style="font-size:13px; font-weight:700; color:var(--color-text-primary); display:block; margin-bottom:12px; margin-top:0;">Apply Transparency To:</label>
           <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
             <label style="display:flex; align-items:center; gap:8px; font-size:12px; cursor:pointer; user-select:none; margin:0">
@@ -482,14 +607,14 @@ const SettingsPage = (() => {
           <p class="page-subtitle">Export or import your complete ICS Tracker database securely.</p>
         </div>
       </div>
-      <div style="display:grid;grid-template-columns:1fr;gap:var(--space-6);max-width:650px">
-        <div class="review-block" style="margin:0">
+      <div class="settings-stack" style="max-width:650px">
+        <div class="review-block settings-panel" style="margin:0">
           <div class="review-block-title">Backup Database</div>
           <p class="form-hint" style="margin-bottom:var(--space-3)">Export a full JSON backup including all records, notes, attachments metadata, and signatories configurations.</p>
           <button class="btn btn-primary" id="btn-backup-now">📥 Download Full Database Backup (.json)</button>
         </div>
 
-        <div class="review-block" style="margin:0">
+        <div class="review-block settings-panel" style="margin:0">
           <div class="review-block-title">Restore Database</div>
           <p class="form-hint" style="margin-bottom:var(--space-3)">Select a valid ICS Tracker JSON backup file to restore records.</p>
           
@@ -499,7 +624,7 @@ const SettingsPage = (() => {
             <span id="file-name-lbl" style="margin-left:8px;font-size:var(--font-size-xs);color:var(--color-text-secondary)">No file chosen</span>
           </div>
 
-          <div id="restore-preview-box" style="display:none;background:var(--color-surface-alt);border:1.5px dashed var(--color-border);border-radius:var(--radius-md);padding:var(--space-4);margin-bottom:var(--space-4)">
+          <div id="restore-preview-box" class="settings-preview-box" style="display:none;margin-bottom:var(--space-4)">
             <h4 style="margin:0 0 8px 0;font-size:12px;font-weight:bold">Backup File Details</h4>
             <div id="restore-details" style="font-size:var(--font-size-xs);color:var(--color-text-secondary);line-height:1.5"></div>
             <div style="display:flex;gap:8px;margin-top:16px">
@@ -601,8 +726,8 @@ const SettingsPage = (() => {
           <p class="page-subtitle">Keep your database optimized and running smoothly.</p>
         </div>
       </div>
-      <div style="display:grid;grid-template-columns:1fr;gap:var(--space-6);max-width:650px">
-        <div class="review-block" style="margin:0">
+      <div class="settings-stack" style="max-width:650px">
+        <div class="review-block settings-panel" style="margin:0">
           <div class="review-block-title">Database Maintenance Utilities</div>
           <div style="display:grid;grid-template-columns:1fr;gap:8px">
             <button class="btn btn-secondary" id="btn-maint-optimize">⚡ Run Database Cost Optimizer</button>
@@ -616,7 +741,7 @@ const SettingsPage = (() => {
           </div>
         </div>
 
-        <div class="review-block" style="margin:0;display:none" id="diagnostic-results-box">
+        <div class="review-block settings-panel" style="margin:0;display:none" id="diagnostic-results-box">
           <div class="review-block-title">Diagnostic Results</div>
           <div id="diagnostic-issues-list" style="font-size:var(--font-size-xs);color:var(--color-text-secondary)"></div>
         </div>
@@ -712,8 +837,8 @@ const SettingsPage = (() => {
           <p class="page-subtitle">Monitor system health, connection status, and storage utilization.</p>
         </div>
       </div>
-      <div style="display:grid;grid-template-columns:1fr;gap:var(--space-6);max-width:650px">
-        <div class="review-block" style="margin:0">
+      <div class="settings-stack" style="max-width:650px">
+        <div class="review-block settings-panel" style="margin:0">
           <div class="review-block-title">Diagnostics & System Connectivity</div>
           <div class="detail-row"><span class="detail-key">Browser Agent</span><span class="detail-val" style="font-size:10px">${navigator.userAgent}</span></div>
           <div class="detail-row"><span class="detail-key">IndexedDB Connectivity</span><span class="detail-val" style="color:var(--color-success)">✓ Connected & Healthy</span></div>
@@ -722,7 +847,7 @@ const SettingsPage = (() => {
           <div class="detail-row"><span class="detail-key">Online Status</span><span class="detail-val">${navigator.onLine ? 'Online' : 'Offline'}</span></div>
         </div>
 
-        <div class="review-block" style="margin:0">
+        <div class="review-block settings-panel" style="margin:0">
           <div class="review-block-title">Developer Mode Access</div>
           <label class="widget-option">
             <input type="checkbox" id="set-dev-checkbox" ${devChecked}> Enable System Developer inspector mode
@@ -751,8 +876,8 @@ const SettingsPage = (() => {
           <p class="page-subtitle">Access documentation, keyboard shortcuts, and system workflows.</p>
         </div>
       </div>
-      <div style="display:grid;grid-template-columns:1fr;gap:var(--space-6);max-width:650px">
-        <div class="review-block" style="margin:0">
+      <div class="settings-stack" style="max-width:650px">
+        <div class="review-block settings-panel" style="margin:0">
           <div class="review-block-title">ICS Documentation Help Center</div>
           
           <div class="help-accordion">
@@ -771,7 +896,7 @@ const SettingsPage = (() => {
           </div>
         </div>
 
-        <div class="review-block" style="margin:0">
+        <div class="review-block settings-panel" style="margin:0">
           <div class="review-block-title">Keyboard Shortcuts Productivity Sheet</div>
           <div style="font-size:var(--font-size-xs);line-height:1.6">
             <div><kbd style="background:var(--color-surface-alt);padding:2px 6px;border-radius:4px;border:1px solid var(--color-border)">Ctrl + K</kbd> Toggle Command Palette</div>
@@ -795,18 +920,43 @@ const SettingsPage = (() => {
 
   /* ── Tab: Update Logs ── */
   function _renderUpdateLogsTab(container) {
+    const announcementHtml = _renderAnnouncementBanner();
+    const timelineHtml = _renderReleaseTimelineItems();
+
     container.innerHTML = `
       <style>
+      .release-announcement { margin-bottom: 20px; padding: 18px 20px; border-radius: 18px; background: linear-gradient(135deg, rgba(37, 99, 235, 0.14), rgba(14, 165, 233, 0.08)); border: 1px solid rgba(37, 99, 235, 0.18); }
+      .release-announcement-head { display:flex; align-items:center; gap:10px; margin-bottom:10px; }
+      .release-announcement-badge { display:inline-flex; align-items:center; padding:4px 10px; border-radius:999px; background: rgba(37, 99, 235, 0.14); color:#1d4ed8; font-size:11px; font-weight:700; letter-spacing:.03em; text-transform:uppercase; }
+      .release-announcement-version { font-size:12px; font-weight:700; color: var(--color-text-primary); }
+      .release-announcement-title { margin:0 0 6px 0; font-size:18px; font-weight:700; color: var(--color-text-primary); }
+      .release-announcement-subtitle { margin:0 0 14px 0; font-size:13px; color: var(--color-text-secondary); line-height:1.5; }
+      .release-banner-list { list-style:none; margin:0; padding:0; display:grid; gap:10px; }
+      .release-banner-item { display:flex; align-items:flex-start; gap:10px; }
+      .release-banner-text { flex:1; min-width:0; font-size:13px; color: var(--color-text-secondary); line-height:1.55; padding-top:2px; }
       .timeline { border-left: 2px solid var(--color-border); padding-left: 24px; position: relative; margin: 16px 0 0 8px; }
-      .timeline-item { position: relative; margin-bottom: 32px; }
+      .timeline-item { position: relative; margin-bottom: 28px; }
       .timeline-item:last-child { margin-bottom: 0; }
       .timeline-dot { position: absolute; left: -31px; top: 4px; width: 12px; height: 12px; border-radius: 50%; background: var(--color-surface); border: 2px solid var(--color-border); }
       .timeline-dot.active { border-color: var(--color-primary); background: var(--color-primary); }
+      .timeline-dot.live { border-color: #0ea5e9; background: #0ea5e9; }
       .timeline-title { margin: 0 0 8px 0; font-size: 14px; font-weight: 600; color: var(--color-text-primary); display: flex; align-items: center; gap: 8px; }
       .timeline-date { font-size: 12px; font-weight: normal; color: var(--color-text-tertiary); }
-      .timeline-list { font-size: 13px; color: var(--color-text-secondary); padding-left: 16px; margin: 0; line-height: 1.6; }
-      .timeline-list li { margin-bottom: 4px; }
-      .timeline-list li strong { color: var(--color-text-primary); }
+      .timeline-list { list-style:none; padding-left: 0; margin: 0; display:grid; gap:10px; }
+      .timeline-entry { display:flex; align-items:flex-start; gap:10px; font-size: 13px; color: var(--color-text-secondary); line-height: 1.55; }
+      .timeline-entry-text { flex:1; min-width:0; padding-top:2px; }
+      .release-type-chip { display:inline-flex; align-items:center; gap:6px; padding:4px 10px; border-radius:999px; font-size:11px; font-weight:700; letter-spacing:.02em; white-space:nowrap; flex-shrink:0; border:1px solid transparent; }
+      .release-type-chip svg { width:13px; height:13px; }
+      .timeline-entry.release-chip-feature { color: #0369a1; }
+      .timeline-entry.release-chip-fix { color: #15803d; }
+      .timeline-entry.release-chip-ux { color: #7e22ce; }
+      .timeline-entry.release-chip-major { color: #c2410c; }
+      .timeline-entry.release-chip-release { color: #4338ca; }
+      .release-chip-feature { background: rgba(14, 165, 233, 0.12); color: #0369a1; border-color: rgba(14, 165, 233, 0.18); }
+      .release-chip-fix { background: rgba(34, 197, 94, 0.12); color: #15803d; border-color: rgba(34, 197, 94, 0.18); }
+      .release-chip-ux { background: rgba(168, 85, 247, 0.12); color: #7e22ce; border-color: rgba(168, 85, 247, 0.18); }
+      .release-chip-major { background: rgba(249, 115, 22, 0.12); color: #c2410c; border-color: rgba(249, 115, 22, 0.18); }
+      .release-chip-release { background: rgba(99, 102, 241, 0.12); color: #4338ca; border-color: rgba(99, 102, 241, 0.18); }
       </style>
       <div class="page-header" style="margin-bottom:var(--space-6)">
         <div>
@@ -816,60 +966,16 @@ const SettingsPage = (() => {
           <p class="page-subtitle">Review system versions, bug fixes, and feature releases.</p>
         </div>
       </div>
-      <div style="display:grid;grid-template-columns:1fr;gap:var(--space-6);max-width:650px">
-        <div class="review-block" style="margin:0">
+      <div class="settings-stack" style="max-width:650px">
+        <div class="review-block settings-panel" style="margin:0">
           <div class="review-block-title" style="display:flex;justify-content:space-between;align-items:center">
             <span>System Version History</span>
-            <span class="badge badge-success">v1.2.1-stable</span>
+            <span class="badge badge-success">${Utils.escapeHtml(APP_VERSION)}</span>
           </div>
-          <p class="form-hint" style="margin-bottom:var(--space-4)">Record of new features, bug fixes, and performance improvements applied to the application.</p>
-          
+          <p class="form-hint" style="margin-bottom:var(--space-4)">Record of in-progress development changes plus formal releases applied to the application.</p>
+          ${announcementHtml}
           <div class="timeline">
-            <div class="timeline-item">
-              <div class="timeline-dot active"></div>
-              <h4 class="timeline-title">v1.2.1 <span class="timeline-date">July 6, 2026 (Current)</span></h4>
-              <ul class="timeline-list">
-                <li><strong>Feature:</strong> Added Material Design 3 theme system with ripple effects and elevation tokens.</li>
-                <li><strong>Feature:</strong> Material Design toggle in Settings > Appearance with theme locking.</li>
-                <li><strong>UX Enhancement:</strong> Tweaked sidebar layout aesthetics by making the sidebar right border, sidebar logo bottom border, and sidebar footer top border transparent.</li>
-                <li><strong>UX Enhancement:</strong> Relocated and integrated the Experimental Features panel inside the Developer grid, utilizing uppercase Zinc 400 headers and custom checkbox variables.</li>
-                <li><strong>Fix:</strong> Corrected header height to a strict 60px size and adjusted global workspace layouts to normalize top spacings and padding.</li>
-                <li><strong>UX Enhancement:</strong> Unified top header, sidebar, and drawer background overlays into a single translucent glass layout with border separators.</li>
-                <li><strong>Feature:</strong> Introduced a Background Tint Opacity slider with real-time UI previews and local settings locking.</li>
-                <li><strong>Feature:</strong> Added granular layout transparency checkboxes to select which workspace panels should use the background glassmorphism system.</li>
-                <li><strong>UX Enhancement:</strong> Integrated the new ICS wizard components into the dynamic glassmorphism theme and center panel toggles.</li>
-                <li><strong>Fix:</strong> Removed double-layer background overlays from context panel headers and drawer handles to ensure transparent backgrounds.</li>
-                <li><strong>UX Enhancement:</strong> Unified all layout panels (header, sidebar, context panel, drawer, main, and wizard sticky bar) under a single shared glassmorphism wallpaper spec.</li>
-                <li><strong>UX Enhancement:</strong> Applied Workspace theme glassmorphism to settings blocks, review cards, school information containers, and inputs.</li>
-                <li><strong>UX Enhancement:</strong> Applied glassmorphism, padding, and drop shadow styles to items table wrappers.</li>
-                <li><strong>Fix:</strong> Cleared backgrounds and backdrop filter properties from all notification timeline headers.</li>
-                <li><strong>Fix:</strong> Prevented dynamic glassmorphism from forcing backgrounds on outer settings content layout wrappers with transparent inline styles.</li>
-              </ul>
-            </div>
-
-            <div class="timeline-item">
-              <div class="timeline-dot"></div>
-              <h4 class="timeline-title">v1.2.0 <span class="timeline-date">July 2026</span></h4>
-              <ul class="timeline-list">
-                <li><strong>Major Update:</strong> Refactored the Developer Panel to use a clean grid layout, staging badge indicator, and a custom dark-theme JSON syntax viewer.</li>
-              </ul>
-            </div>
-
-            <div class="timeline-item">
-              <div class="timeline-dot"></div>
-              <h4 class="timeline-title">v1.1.0 <span class="timeline-date">June 2026</span></h4>
-              <ul class="timeline-list">
-                <li><strong>Feature:</strong> Introduced the Automated Integrity Engine for background data scanning and validation.</li>
-              </ul>
-            </div>
-
-            <div class="timeline-item">
-              <div class="timeline-dot"></div>
-              <h4 class="timeline-title">v1.0.0 <span class="timeline-date">May 2026</span></h4>
-              <ul class="timeline-list">
-                <li><strong>Initial Release:</strong> Local-first IndexedDB Property Custodian system launched.</li>
-              </ul>
-            </div>
+            ${timelineHtml}
           </div>
         </div>
       </div>
@@ -890,7 +996,7 @@ const SettingsPage = (() => {
     `).join('');
 
     container.innerHTML = `
-      <div class="review-block" style="margin:0;max-width:800px">
+      <div class="review-block settings-panel" style="margin:0;max-width:800px">
         <div class="review-block-title" style="display:flex;justify-content:space-between;align-items:center">
           <span>Administrative System Logs</span>
           <button class="btn btn-ghost btn-sm" id="btn-clear-logs" style="color:var(--color-danger)">Clear Log History</button>
@@ -957,9 +1063,9 @@ const SettingsPage = (() => {
         </div>
       </div>
 
-      <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap:var(--space-6);">
+      <div class="settings-split-grid settings-split-grid-wide">
         <!-- Data Management Card -->
-        <div class="review-block" style="margin:0; border:1px solid var(--color-border); background:var(--color-surface); padding:var(--space-5); display:flex; flex-direction:column; gap:var(--space-4)">
+        <div class="review-block settings-panel" style="margin:0; display:flex; flex-direction:column; gap:var(--space-4)">
           <div>
             <div class="review-block-title" style="font-size:16px; font-weight:600; margin-bottom:4px">Database Operations</div>
             <p class="form-hint">Seed or clear mock data to simulate various system states.</p>
@@ -981,7 +1087,7 @@ const SettingsPage = (() => {
         </div>
 
         <!-- Experimental Features Card -->
-        <div class="review-block dev-testing-section" style="margin:0; border:1px solid var(--color-border); background:var(--color-surface); padding:20px; display:flex; flex-direction:column; justify-content:space-between;">
+        <div class="review-block settings-panel dev-testing-section" style="margin:0; display:flex; flex-direction:column; justify-content:space-between;">
           <div>
             <h3 style="font-size: 16px; font-weight: 600; color: #a1a1aa; text-transform: uppercase; letter-spacing: 0.64px; margin-bottom: 4px; margin-top: 0;">Experimental Features</h3>
             <p class="form-hint" style="font-size: 12px; color: #71717a; margin-top: 0; margin-bottom: 0;">Enable or disable new experimental designs.</p>
@@ -1002,7 +1108,7 @@ const SettingsPage = (() => {
         </div>
 
         <!-- State Inspector Card -->
-        <div class="review-block" style="margin:0; border:1px solid var(--color-border); background:var(--color-surface); padding:var(--space-5)">
+        <div class="review-block settings-panel settings-code-panel" style="margin:0">
           <div class="review-block-title" style="font-size:16px; font-weight:600; margin-bottom:4px">Raw Database Records</div>
           <div style="position:relative; margin-top:12px">
             <div style="height:280px; overflow-y:auto; background:#1e293b; color:#94a3b8; padding:var(--space-4); border-radius:var(--radius-lg); font-family:'Fira Code', 'Courier New', monospace; font-size:11px; line-height:1.5">
@@ -1129,5 +1235,5 @@ const SettingsPage = (() => {
 
   function destroy() {}
 
-  return { render, destroy };
+  return { render, destroy, openTab };
 })();

@@ -68,6 +68,8 @@ const SettingsManager = (() => {
       root.style.removeProperty('--color-primary-hover');
       root.style.removeProperty('--color-primary-soft');
       root.style.removeProperty('--glass-color');
+      root.style.removeProperty('--workspace-theme-image');
+      root.style.removeProperty('--workspace-theme-color');
       // Clear body background
       body.style.backgroundImage = '';
       body.style.backgroundColor = '';
@@ -119,12 +121,15 @@ const SettingsManager = (() => {
     // Apply background depending on type.
     // For images, preload then apply to avoid flash and wasted reflows.
     if (theme.type === 'image') {
+      root.style.setProperty('--workspace-theme-image', `url("${theme.val}")`);
+      root.style.removeProperty('--workspace-theme-color');
       // indicate loading state
       body.classList.add('workspace-bg-loading');
       const img = new Image();
       img.onload = () => {
         try {
           body.style.backgroundImage = `url("${theme.val}")`;
+          body.style.backgroundColor = '';
           body.classList.add('workspace-enhanced-bg');
         } catch (e) {
           body.style.backgroundImage = '';
@@ -139,11 +144,16 @@ const SettingsManager = (() => {
       // start preload; this will start network fetch but only set background after load
       img.src = theme.val;
     } else if (theme.type === 'gradient') {
+      root.style.setProperty('--workspace-theme-image', theme.val);
+      root.style.removeProperty('--workspace-theme-color');
       // apply gradient directly
       body.style.backgroundImage = theme.val;
+      body.style.backgroundColor = '';
       body.classList.add('workspace-enhanced-bg');
       body.classList.remove('workspace-bg-loading');
     } else {
+      root.style.setProperty('--workspace-theme-image', 'none');
+      root.style.setProperty('--workspace-theme-color', theme.val || '');
       // color or default
       body.style.backgroundImage = 'none';
       body.style.backgroundColor = theme.val || '';

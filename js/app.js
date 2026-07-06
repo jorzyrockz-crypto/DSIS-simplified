@@ -510,6 +510,73 @@ function updateOnlineStatus() {
   AppState.onlineStatus = navigator.onLine;
 }
 
+function _getLatestReleaseAnnouncement() {
+  const releases = Array.isArray(window.RELEASE_NOTES_DATA) ? window.RELEASE_NOTES_DATA : [];
+  return releases.length ? releases[0] : null;
+}
+
+function _buildReleaseAnnouncementBody(release) {
+  const items = Array.isArray(release.items) ? release.items.slice(0, 4) : [];
+  const itemHtml = items.map(item => {
+    const type = Utils.escapeHtml(item.type || 'Update');
+    const text = Utils.escapeHtml(item.text || '');
+    return `
+      <li style="display:flex;gap:10px;align-items:flex-start;margin:0;padding:0">
+        <span style="display:inline-flex;align-items:center;padding:4px 10px;border-radius:999px;background:rgba(37,99,235,.1);color:#1d4ed8;font-size:11px;font-weight:700;white-space:nowrap">${type}</span>
+        <span style="font-size:13px;line-height:1.55;color:var(--color-text-secondary)">${text}</span>
+      </li>
+    `;
+  }).join('');
+
+  return `
+    <div style="display:grid;gap:14px">
+      <div style="padding:18px;border-radius:18px;background:linear-gradient(135deg, rgba(37, 99, 235, 0.14), rgba(14, 165, 233, 0.08));border:1px solid rgba(37, 99, 235, 0.18)">
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px">
+          <span style="display:inline-flex;align-items:center;padding:4px 10px;border-radius:999px;background:rgba(37,99,235,.14);color:#1d4ed8;font-size:11px;font-weight:700;letter-spacing:.03em;text-transform:uppercase">New Release</span>
+          <span style="font-size:12px;font-weight:700;color:var(--color-text-primary)">${Utils.escapeHtml(release.version || 'Latest')}</span>
+        </div>
+        <h3 style="margin:0 0 6px 0;font-size:20px;line-height:1.25;color:var(--color-text-primary)">What changed in ${Utils.escapeHtml(String(release.version || '').replace('-stable', ''))}</h3>
+        <p style="margin:0;font-size:13px;line-height:1.6;color:var(--color-text-secondary)">Released ${Utils.escapeHtml(release.dateLabel || '')}. Here are the biggest updates included in this build.</p>
+      </div>
+      <ul style="list-style:none;display:grid;gap:10px;margin:0;padding:0">
+        ${itemHtml}
+      </ul>
+    </div>
+  `;
+}
+
+async function maybeShowReleaseAnnouncement() {
+  const release = _getLatestReleaseAnnouncement();
+  if (!release || !release.version) return;
+
+  const seenKey = `ics-release-announcement-seen-${release.version}`;
+
+  try {
+    if (localStorage.getItem(seenKey) === 'true') return;
+  } catch {}
+
+  const action = await UIKit.modal({
+    title: 'Release Announcement',
+    size: 'md',
+    body: _buildReleaseAnnouncementBody(release),
+    actions: [
+      { label: 'Later', variant: 'secondary', value: 'dismiss' },
+      { label: 'View Update Logs', variant: 'primary', value: 'updates' },
+    ],
+  });
+
+  try {
+    localStorage.setItem(seenKey, 'true');
+  } catch {}
+
+  if (action === 'updates') {
+    Router.navigate('#settings?tab=updates');
+    setTimeout(() => {
+      try { SettingsPage.openTab('updates'); } catch {}
+    }, 0);
+  }
+}
+
 /* ============================================================
    Router Setup
    ============================================================ */
@@ -748,11 +815,17 @@ function bootstrap() {
       window.App.rebuildSavedSearches();
 
       setupRouter();
+      setTimeout(() => {
+        maybeShowReleaseAnnouncement().catch(err => console.error('[ICS App] Release announcement failed:', err));
+      }, 0);
       console.log('[ICS App] Bootstrapped successfully — DB & Phase 5 ready.');
     })
     .catch(err => {
       console.error('[ICS App] Database initialization failed:', err);
       setupRouter();
+      setTimeout(() => {
+        maybeShowReleaseAnnouncement().catch(modalErr => console.error('[ICS App] Release announcement failed:', modalErr));
+      }, 0);
     });
 }
 
