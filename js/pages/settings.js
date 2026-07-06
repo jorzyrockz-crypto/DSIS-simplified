@@ -840,6 +840,7 @@ const SettingsPage = (() => {
                 <li><strong>UX Enhancement:</strong> Integrated the new ICS wizard components into the dynamic glassmorphism theme and center panel toggles.</li>
                 <li><strong>Fix:</strong> Removed double-layer background overlays from context panel headers and drawer handles to ensure transparent backgrounds.</li>
                 <li><strong>UX Enhancement:</strong> Unified all layout panels (header, sidebar, context panel, drawer, main, and wizard sticky bar) under a single shared glassmorphism wallpaper spec.</li>
+                <li><strong>UX Enhancement:</strong> Applied Workspace theme glassmorphism to settings blocks, review cards, school information containers, and inputs.</li>
               </ul>
             </div>
 

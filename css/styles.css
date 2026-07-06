@@ -3313,3 +3313,38 @@ body.workspace-enhanced-bg .wizard-step-panel {
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.04) !important;
   transition: background 0.3s ease, border 0.3s ease !important;
 }
+
+/* Apply Workspace Theme to School Information, Settings Blocks, and review blocks */
+body.workspace-enhanced-bg .review-block,
+body.workspace-enhanced-bg .settings-section,
+body.workspace-enhanced-bg .form-card,
+body.workspace-enhanced-bg .inspector-card {
+  background: var(--workspace-glass-bg, rgba(255, 255, 255, 0.7)) !important;
+  backdrop-filter: blur(20px) saturate(140%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(140%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.05) !important;
+  transition: background 0.3s ease, backdrop-filter 0.3s ease !important;
+}
+
+/* Ensure form labels and text within glass panels remain high-contrast */
+body.workspace-enhanced-bg .review-block .form-label,
+body.workspace-enhanced-bg .review-block-title {
+   color: var(--color-text-primary) !important;
+   text-shadow: 0 1px 2px rgba(255,255,255,0.2);
+}
+
+/* Input styling for glass panels to ensure high legibility */
+body.workspace-enhanced-bg .review-block input,
+body.workspace-enhanced-bg .review-block select,
+body.workspace-enhanced-bg .review-block textarea {
+  background: rgba(255, 255, 255, 0.9) !important;
+  border: 1px solid rgba(0, 0, 0, 0.08) !important;
+  color: #1e293b !important;
+  font-weight: 500 !important;
+}
+
+/* Adjust specific icons if they are too light */
+body.workspace-enhanced-bg .review-block svg {
+  opacity: 0.9;
+}
