@@ -842,6 +842,8 @@ const SettingsPage = (() => {
                 <li><strong>UX Enhancement:</strong> Unified all layout panels (header, sidebar, context panel, drawer, main, and wizard sticky bar) under a single shared glassmorphism wallpaper spec.</li>
                 <li><strong>UX Enhancement:</strong> Applied Workspace theme glassmorphism to settings blocks, review cards, school information containers, and inputs.</li>
                 <li><strong>UX Enhancement:</strong> Applied glassmorphism, padding, and drop shadow styles to items table wrappers.</li>
+                <li><strong>Fix:</strong> Cleared backgrounds and backdrop filter properties from all notification timeline headers.</li>
+                <li><strong>Fix:</strong> Prevented dynamic glassmorphism from forcing backgrounds on outer settings content layout wrappers with transparent inline styles.</li>
               </ul>
             </div>
 
