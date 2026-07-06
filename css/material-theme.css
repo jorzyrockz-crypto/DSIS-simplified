@@ -1,0 +1,17 @@
+/* Material theme starter overrides */
+.material-theme {
+  --color-primary: #6200EE;
+  --color-primary-hover: #3700B3;
+  --color-surface: #FFFFFF;
+  --color-bg: #F5F5F5;
+  --color-text-primary: #111827;
+  --color-text-secondary: #6B7280;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.12);
+  --shadow-md: 0 4px 16px rgba(0,0,0,0.14);
+  --radius-md: 12px;
+}
+
+/* Example overrides */
+.material-theme .card { box-shadow: var(--shadow-md); border-radius: var(--radius-md); }
+.material-theme .btn-primary { background: var(--color-primary); color: var(--color-text-inverse); box-shadow: 0 2px 6px rgba(98,0,238,0.18); border-radius: 8px; }
+.material-theme .sidebar-logo .logo-mark { box-shadow: 0 6px 18px rgba(98,0,238,0.12); }
