@@ -101,8 +101,10 @@ const Components = (() => {
       : '';
     card.innerHTML = `
       <div class="stat-icon">${icon(iconName)}</div>
-      <div class="stat-value">${value}</div>
-      <div class="stat-label">${label}</div>
+      <div class="stat-info">
+        <div class="stat-value">${value}</div>
+        <div class="stat-label">${label}</div>
+      </div>
       ${changeHtml}
     `;
     return card;

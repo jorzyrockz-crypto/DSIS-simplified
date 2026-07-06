@@ -211,7 +211,7 @@ img, svg {
   transition: width var(--transition-slow), min-width var(--transition-slow);
   overflow: hidden;
   flex-shrink: 0;
-  border-right: 1px solid var(--color-border); /* Light border split */
+  border-right: 1px solid transparent; /* Light border split */
 }
 
 #sidebar.collapsed {
@@ -232,9 +232,9 @@ img, svg {
 #header {
   height: var(--header-height);
   min-height: var(--header-height);
-  background: var(--color-header-bg);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  background-color: transparent;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
   border-bottom: none; /* Remove harsh header border */
   display: flex;
   align-items: center;
@@ -272,6 +272,7 @@ img, svg {
   overflow: hidden;
   flex-shrink: 0;
   padding: 24px; /* Spacious internal padding on all 4 sides */
+  padding-bottom: 0px;
   box-sizing: border-box;
   transition: width var(--transition-slow), min-width var(--transition-slow), padding var(--transition-slow), opacity var(--transition-base), transform var(--transition-slow);
 }
@@ -305,6 +306,7 @@ img, svg {
   flex: 1;
   overflow-y: auto;
   padding: 0;
+  padding-bottom: 0px;
   display: flex;
   flex-direction: column;
   gap: 24px; /* 24px spacing between major card sections */
@@ -319,6 +321,8 @@ img, svg {
   border: 1px solid var(--color-border);
   border-radius: 12px;
   padding: 16px;
+  padding-bottom: 0px;
+  margin-bottom: 0px;
   box-shadow: var(--shadow-sm);
   display: flex;
   flex-direction: column;
@@ -341,7 +345,7 @@ img, svg {
   align-items: center;
   gap: var(--space-3);
   padding: var(--space-5) var(--space-4);
-  border-bottom: 1px solid var(--color-border); /* Light border separator */
+  border-bottom: 1px solid transparent; /* Light border separator */
   min-height: var(--header-height);
   overflow: hidden;
   flex-shrink: 0;
@@ -542,7 +546,7 @@ img, svg {
 
 /* Sidebar Footer */
 .sidebar-footer {
-  border-top: 1px solid var(--color-border); /* Light border */
+  border-top: 1px solid transparent; /* Light border */
   padding: var(--space-3);
   flex-shrink: 0;
 }
@@ -725,9 +729,10 @@ img, svg {
   right: 6px;
   width: 8px;
   height: 8px;
-  background: var(--color-danger);
+  background-color: var(--color-primary);
   border-radius: var(--radius-full);
-  border: 2px solid var(--color-surface);
+  border: none;
+  box-shadow: var(--color-surface) 0px 0px 0px 2px, rgba(99, 102, 241, 0.2) 0px 0px 0px 4px;
 }
 
 /* User Avatar */
@@ -915,19 +920,35 @@ img, svg {
   background: var(--color-surface);
   border: 1.5px solid var(--color-border);
   border-radius: var(--radius-lg); /* 18px */
-  padding: 24px; /* 24px internal padding */
+  padding: 16px;
   box-shadow: var(--shadow-sm);
   display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
+  flex-direction: row;
+  align-items: center;
+  gap: 16px;
+  justify-content: flex-start;
   transition: box-shadow var(--transition-base), transform var(--transition-base);
   position: relative;
   overflow: hidden;
+  min-width: 0;
 }
 
 .stat-card:hover {
   box-shadow: var(--shadow-md);
   transform: translateY(-2px);
+}
+
+.is-draggable {
+  cursor: grab;
+}
+
+.is-draggable:active {
+  cursor: grabbing;
+}
+
+.stat-card.drag-over {
+  border-color: var(--color-primary);
+  background-color: var(--color-surface-alt);
 }
 
 .stat-card .stat-icon {
@@ -938,6 +959,7 @@ img, svg {
   align-items: center;
   justify-content: center;
   font-size: 20px;
+  flex-shrink: 0;
 }
 
 .stat-card.primary .stat-icon   { background: rgba(99, 102, 241, 0.08); color: var(--color-primary); }
@@ -945,26 +967,32 @@ img, svg {
 .stat-card.warning .stat-icon   { background: rgba(249, 115, 22, 0.08); color: var(--color-warning); }
 .stat-card.info .stat-icon      { background: rgba(99, 102, 241, 0.08); color: var(--color-primary); }
 
+.stat-card .stat-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+}
+
 .stat-card .stat-value {
-  font-size: var(--font-size-2xl);
+  font-size: 24px;
   font-weight: var(--font-weight-extrabold);
   color: var(--color-text-primary);
-  line-height: 1;
+  line-height: 1.2;
   letter-spacing: var(--letter-spacing-tight);
 }
 
 .stat-card .stat-label {
-  font-size: var(--font-size-sm);
+  font-size: 13px;
   color: var(--color-text-secondary);
-  font-weight: var(--font-weight-medium);
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .stat-card .stat-change {
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-medium);
-  display: flex;
-  align-items: center;
-  gap: 3px;
+  display: none;
 }
 
 .stat-card .stat-change.up   { color: #065F46; /* Dark, accessible emerald green */ }
@@ -1117,19 +1145,44 @@ img, svg {
 /* -- Notification card -- */
 .notif-card {
   display: flex;
+  align-items: center;
   gap: var(--space-3);
-  padding: var(--space-4) var(--space-5);
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-xs);
-  transition: box-shadow var(--transition-base), border-color var(--transition-base);
+  padding: 6px 12px;
+  margin: 0px;
+  background-color: transparent;
+  border: none;
+  border-bottom: 1px solid var(--color-border-light);
+  border-radius: 0px;
+  box-shadow: none;
+  transition: background-color 0.2s;
   cursor: pointer;
 }
 
 .notif-card:hover {
-  box-shadow: var(--shadow-md);
-  border-color: var(--color-primary-muted);
+  background-color: var(--color-surface-alt);
+}
+
+span.new-badge {
+  font-size: 10px;
+  background-color: var(--color-primary);
+  color: #FFFFFF;
+  padding: 2px 6px;
+  border-radius: 4px;
+  margin-left: 12px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+}
+
+.notif-timeline-header {
+  position: sticky;
+  top: 0px;
+  z-index: 10;
+  background-color: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  padding-top: 12px;
+  padding-bottom: 12px;
+  margin-top: 0px;
 }
 
 .notif-card .notif-dot {
@@ -1536,9 +1589,10 @@ img, svg {
 /* Stats grid */
 .stats-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: var(--space-5);
-  margin-bottom: var(--space-8);
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+  width: 100%;
   flex-shrink: 0;
 }
 
@@ -1549,6 +1603,11 @@ img, svg {
   gap: var(--space-5);
 }
 
+header:has(.header-page-title) {
+  padding-left: 16px !important;
+  padding-right: 16px !important;
+}
+
 /* Page header (within workspace) */
 .page-header {
   display: flex;
@@ -1556,6 +1615,8 @@ img, svg {
   justify-content: space-between;
   gap: var(--space-4);
   margin-bottom: var(--space-8);
+  padding-left: 16px !important;
+  padding-right: 16px !important;
 }
 
 .page-header .page-title {
@@ -1579,6 +1640,8 @@ img, svg {
   color: var(--color-text-secondary);
   margin-top: var(--space-1);
   font-weight: var(--font-weight-regular);
+  margin-left: 0;
+  padding-left: 0;
 }
 
 /* Records list */
@@ -1592,7 +1655,9 @@ img, svg {
 .notif-list {
   display: flex;
   flex-direction: column;
-  gap: var(--space-3);
+  gap: 0px;
+  background: transparent;
+  border: none;
 }
 
 /* Report grid */
@@ -1833,9 +1898,30 @@ img, svg {
    ------------------------------------------------------------ */
 
 /* Tablet: <= 1024px */
-@media (max-width: 1024px) {
+/* Mobile unification: Hide persistent panel, enable drawer */
+@media (max-width: 992px) {
   #context-panel {
-    display: none; /* hidden; shown as drawer */
+    display: none !important;
+  }
+  
+  #context-drawer {
+    display: flex !important; /* Managed by JS for opening/closing */
+  }
+
+  #app {
+    display: flex !important; /* Maintain side-by-side flex layout on tablet */
+  }
+}
+
+/* Desktop unification: Show persistent panel, hide drawer */
+@media (min-width: 993px) {
+  #context-panel {
+    display: flex !important;
+    border-left: 1px solid var(--color-border);
+  }
+  
+  #context-drawer {
+    display: none !important;
   }
 }
 
@@ -1855,6 +1941,10 @@ img, svg {
 
   #sidebar.mobile-open {
     transform: translateX(0);
+  }
+
+  #context-drawer {
+    width: 100% !important;
   }
 
   .collapse-btn { display: none !important; }
@@ -2089,6 +2179,11 @@ img, svg {
 
 .widget-card:hover {
   box-shadow: var(--shadow-md);
+}
+
+.widget-card.urgent-accent {
+  border-left: 4px solid var(--color-danger) !important;
+  box-shadow: rgba(0, 0, 0, 0.08) 0px 4px 6px -1px, rgba(0, 0, 0, 0.04) 0px 2px 4px -1px;
 }
 
 .widget-card-header {
@@ -2384,9 +2479,9 @@ img, svg {
 /* Segmented View Switcher Control */
 .view-switcher-segmented {
   display: flex;
-  background: var(--color-bg);
-  border-radius: var(--radius-md);
-  padding: 4px;
+  background-color: rgba(244, 244, 245, 0.8);
+  padding: 3px;
+  border-radius: 9px;
   border: 1px solid var(--color-border);
   width: fit-content;
   margin-bottom: 24px;
@@ -2394,21 +2489,23 @@ img, svg {
 
 .segmented-pill {
   border: none;
-  background: none;
+  background-color: transparent;
   padding: 6px 16px;
-  border-radius: var(--radius-sm);
+  border-radius: 6px;
   font-size: var(--font-size-sm);
   font-weight: 500;
-  color: var(--color-text-secondary);
+  color: rgb(113, 113, 122);
   cursor: pointer;
   transition: all var(--transition-fast);
   white-space: nowrap;
 }
 
 .segmented-pill.active {
-  background: var(--color-surface);
-  color: var(--color-primary);
-  box-shadow: var(--shadow-xs);
+  background-color: rgb(255, 255, 255);
+  color: rgb(17, 24, 39);
+  box-shadow: rgba(0, 0, 0, 0.1) 0px 1px 3px 0px, rgba(0, 0, 0, 0.06) 0px 1px 2px 0px;
+  border-radius: 6px;
+  font-weight: 600;
 }
 
 .segmented-pill:hover:not(.active) {
@@ -2887,6 +2984,190 @@ h1.page-title {
   justify-content: space-between;
   padding: 12px 16px;
   border-bottom: 1px solid var(--color-border-light);
+}
+
+/* Customization Overlay */
+#customization-overlay {
+  position: fixed;
+  top: 0px;
+  left: 0px;
+  width: 100%;
+  height: 100%;
+  background: rgba(15, 23, 42, 0.5);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  z-index: 9999;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.customization-dialog {
+  background: var(--color-surface);
+  color: var(--color-text-primary);
+  width: 100% !important;
+  max-width: 400px;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 20px !important;
+  border-radius: 20px 20px 16px 16px;
+  border: 1px solid var(--color-border);
+  box-shadow: rgba(0, 0, 0, 0.1) 0px 20px 25px -5px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  box-sizing: border-box;
+}
+
+@media (max-width: 480px) {
+  #customization-overlay {
+    align-items: flex-end !important;
+    padding: 0 !important;
+  }
+
+  .customization-dialog {
+    border-radius: 20px 20px 0 0 !important;
+    margin-bottom: 0 !important;
+  }
+}
+
+/* Dashboard Hero Responsive Mobile Fixes */
+@media (max-width: 600px) {
+  .hero-content {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 16px !important;
+  }
+
+  .hero-greeting {
+    font-size: 24px !important;
+    line-height: 1.2 !important;
+  }
+
+  /* Target the div containing the buttons */
+  .hero-content > div:has(button) {
+    display: flex !important;
+    flex-direction: column !important;
+    width: 100% !important;
+    gap: 10px !important;
+  }
+
+  .hero-content button {
+    width: 100% !important;
+    justify-content: center !important;
+  }
+}
+
+/* Dashboard Context Panel Styling overrides */
+#context-panel-body, #context-drawer-body {
+  padding: 20px !important;
+  height: 100%;
+  overflow-y: auto;
+}
+
+/* Right Panel Background Logic */
+
+/* 1. Full Page / Flyout Background (Mobile & Tablet Portrait) */
+@media (max-width: 1024px) and (orientation: portrait) {
+  #context-drawer,
+  #context-drawer-body,
+  #context-panel,
+  #context-panel-body {
+    background-color: var(--color-surface-alt) !important; /* Soft theme-aware background */
+    background-image: none !important;
+  }
+  
+  .context-card {
+    background-color: var(--color-surface) !important; /* Cards stay solid surface for contrast */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05) !important;
+  }
+}
+
+/* 2. Remove Background in Landscape (Desktop or Tablet Landscape) */
+@media (orientation: landscape) {
+  #context-panel,
+  #context-panel-body,
+  #context-drawer,
+  #context-drawer-body {
+    background-color: transparent !important;
+    background: transparent !important;
+  }
+  
+  .context-card {
+    background-color: var(--color-surface) !important;
+  }
+}
+
+.context-card {
+  background: var(--color-surface) !important;
+  border: 1px solid var(--color-border) !important;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.02), 0 4px 12px rgba(27, 38, 59, 0.03) !important;
+  border-radius: 16px !important;
+  padding: 20px !important;
+  margin-bottom: 20px !important;
+}
+
+.context-card-title {
+  font-size: 11px !important;
+  font-weight: 800 !important;
+  color: var(--color-text-tertiary, #64748b) !important;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  margin-bottom: 16px !important;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.db-stat-item {
+  background: var(--color-surface-alt) !important;
+  padding: 12px !important;
+  border-radius: 12px !important;
+  border: 1px solid transparent;
+  transition: all 0.2s ease;
+}
+
+.db-stat-item:hover {
+  background: var(--color-surface) !important;
+  border-color: var(--color-border);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.recent-alert-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 0 !important;
+  border-bottom: 1px solid var(--color-border-light) !important;
+  transition: background 0.2s ease;
+}
+
+.recent-alert-item:last-child {
+  border-bottom: none !important;
+}
+
+.health-indicator {
+  transition: all 0.3s ease;
+}
+
+.context-card:hover .health-indicator {
+  transform: scale(1.05);
+}
+
+/* Remove all vertical layout borders */
+#sidebar, 
+#context-panel, 
+main {
+  border-left: none !important;
+  border-right: none !important;
+  box-shadow: none !important; /* Remove any shadows that look like lines */
+}
+
+/* Ensure no gap between flex items in the main app container */
+#app {
+  gap: 0 !important;
 }
 
 

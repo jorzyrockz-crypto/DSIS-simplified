@@ -539,6 +539,52 @@ function setupRouter() {
 }
 
 /* ============================================================
+   Real-Time Context Panel & Drawer Content Sync
+   ============================================================ */
+function initContextSync() {
+  const panelBody = document.getElementById('context-panel-body');
+  const drawerBody = document.getElementById('context-drawer-body');
+  
+  if (!panelBody || !drawerBody) return;
+  
+  let isSyncing = false;
+  
+  const observerCallback = (target, source) => {
+    if (isSyncing) return;
+    if (target.innerHTML === source.innerHTML) return;
+    
+    isSyncing = true;
+    target.innerHTML = source.innerHTML;
+    
+    // Copy active inputs / textarea values (as innerHTML does not serialize dynamic form values)
+    const sourceInputs = source.querySelectorAll('input, select, textarea');
+    const targetInputs = target.querySelectorAll('input, select, textarea');
+    sourceInputs.forEach((input, idx) => {
+      if (targetInputs[idx]) {
+        targetInputs[idx].value = input.value;
+      }
+    });
+
+    if (target === panelBody) {
+      panelBody.style.padding = '0';
+    }
+    isSyncing = false;
+  };
+  
+  const panelObserver = new MutationObserver(() => {
+    observerCallback(drawerBody, panelBody);
+  });
+  
+  const drawerObserver = new MutationObserver(() => {
+    observerCallback(panelBody, drawerBody);
+  });
+  
+  const config = { childList: true, subtree: true, characterData: true };
+  panelObserver.observe(panelBody, config);
+  drawerObserver.observe(drawerBody, config);
+}
+
+/* ============================================================
    App Bootstrap
    ============================================================ */
 function bootstrap() {
@@ -573,6 +619,9 @@ function bootstrap() {
   // Restore persisted sidebar & context panel states
   restoreSidebarState();
   restoreContextPanelState();
+
+  // Initialize context panel & drawer content sync
+  initContextSync();
 
   // Network status
   window.addEventListener('online',  updateOnlineStatus);

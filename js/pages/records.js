@@ -153,12 +153,22 @@ const RecordsPage = (() => {
       </div>
 
       <div style="margin-bottom: 12px; margin-top: -4px;">
-        <div class="btn-group">
-          <button class="btn btn-secondary btn-sm" id="cact-view" title="View Full Slip">${Components.icon('panelRight')}</button>
-          <button class="btn btn-secondary btn-sm" id="cact-edit" title="Edit Slip">${Components.icon('edit')}</button>
-          <button class="btn btn-secondary btn-sm" id="cact-print" title="Print Slip">${Components.icon('download')}</button>
+        <div class="btn-group context-menu-group">
+          <button class="btn btn-secondary btn-sm" id="cact-view" title="View Full Slip">
+            ${Components.icon('panelRight')}
+            <span class="btn-label">View</span>
+          </button>
+          <button class="btn btn-secondary btn-sm" id="cact-edit" title="Edit Slip">
+            ${Components.icon('edit')}
+            <span class="btn-label">Edit</span>
+          </button>
+          <button class="btn btn-secondary btn-sm" id="cact-print" title="Print Slip">
+            ${Components.icon('download')}
+            <span class="btn-label">Print</span>
+          </button>
           <button class="btn btn-secondary btn-sm" id="cact-fav" title="${record.isFavorite ? 'Remove Favorite' : 'Add to Favorites'}" style="${record.isFavorite ? 'color:#F59E0B' : ''}">
             ${Components.icon('star')}
+            <span class="btn-label">${record.isFavorite ? 'Saved' : 'Fav'}</span>
           </button>
         </div>
       </div>
@@ -288,12 +298,27 @@ const RecordsPage = (() => {
       </div>
 
       <div style="margin-bottom: 12px; margin-top: -4px;">
-        <div class="btn-group">
-          <button class="btn btn-secondary btn-sm" id="iact-view-ics-action" title="View Full ICS">${Components.icon('panelRight')}</button>
-          <button class="btn btn-secondary btn-sm" id="iact-edit-item" title="Edit Item">${Components.icon('edit')}</button>
-          <button class="btn btn-secondary btn-sm" id="iact-dup-item" title="Duplicate Item">${Components.icon('copy')}</button>
-          <button class="btn btn-secondary btn-sm" id="iact-copy-inv" title="Copy Inventory Number">${Components.icon('list')}</button>
-          <button class="btn btn-secondary btn-sm" id="iact-copy-sn" title="Copy Serial Number">${Components.icon('list')}</button>
+        <div class="btn-group context-menu-group">
+          <button class="btn btn-secondary btn-sm" id="iact-view-ics-action" title="View Full ICS">
+            ${Components.icon('panelRight')}
+            <span class="btn-label">View</span>
+          </button>
+          <button class="btn btn-secondary btn-sm" id="iact-edit-item" title="Edit Item">
+            ${Components.icon('edit')}
+            <span class="btn-label">Edit</span>
+          </button>
+          <button class="btn btn-secondary btn-sm" id="iact-dup-item" title="Duplicate Item">
+            ${Components.icon('copy')}
+            <span class="btn-label">Clone</span>
+          </button>
+          <button class="btn btn-secondary btn-sm" id="iact-copy-inv" title="Copy Inventory Number">
+            ${Components.icon('list')}
+            <span class="btn-label">Inv</span>
+          </button>
+          <button class="btn btn-secondary btn-sm" id="iact-copy-sn" title="Copy Serial Number">
+            ${Components.icon('list')}
+            <span class="btn-label">Serial</span>
+          </button>
         </div>
       </div>
 
@@ -520,10 +545,19 @@ const RecordsPage = (() => {
       </div>
 
       <div style="margin-bottom: 12px; margin-top: -4px;">
-        <div class="btn-group">
-          <button class="btn btn-secondary btn-sm" id="ract-view-ics" title="View Latest ICS">${Components.icon('panelRight')}</button>
-          <button class="btn btn-secondary btn-sm" id="ract-view-items" title="View All Items">${Components.icon('package')}</button>
-          <button class="btn btn-secondary btn-sm" id="ract-print-accountability" title="Print Accountability Summary" disabled>${Components.icon('download')}</button>
+        <div class="btn-group context-menu-group">
+          <button class="btn btn-secondary btn-sm" id="ract-view-ics" title="View Latest ICS">
+            ${Components.icon('panelRight')}
+            <span class="btn-label">View</span>
+          </button>
+          <button class="btn btn-secondary btn-sm" id="ract-view-items" title="View All Items">
+            ${Components.icon('package')}
+            <span class="btn-label">Items</span>
+          </button>
+          <button class="btn btn-secondary btn-sm" id="ract-print-accountability" title="Print Accountability Summary" disabled>
+            ${Components.icon('download')}
+            <span class="btn-label">Print</span>
+          </button>
         </div>
       </div>
 
@@ -1448,31 +1482,17 @@ const RecordsPage = (() => {
     row2.style.cssText = 'margin-bottom:var(--space-6)';
     workspace.appendChild(row2);
 
-    // ROW 3 — Organization
+    // ROW 3 — Organization (Combined filters and view mode toggle, aligned right)
     const row3 = document.createElement('div');
-    row3.style.cssText = 'display:flex;align-items:center;gap:12px;width:100%;margin-bottom:var(--space-6)';
+    row3.style.cssText = 'display:flex;align-items:center;justify-content:flex-end;gap:12px;width:100%;margin-bottom:var(--space-6)';
 
-    const statusSelect = document.createElement('select');
-    statusSelect.className = 'form-control';
-    statusSelect.style.cssText = 'width:140px;height:38px;';
-    statusSelect.id = 'org-status-select';
-    statusSelect.innerHTML = `
-      <option value="all">Status: All</option>
-      <option value="active">Status: Active</option>
-      <option value="draft">Status: Draft</option>
-      <option value="archived">Status: Archived</option>
-    `;
-    statusSelect.value = _state.filters.status || 'all';
-    statusSelect.addEventListener('change', (e) => {
-      _state.filters.status = e.target.value;
-      _state.page = 0;
-      _runQuery();
-    });
-    row3.appendChild(statusSelect);
+    // Left side: filters
+    const filtersContainer = document.createElement('div');
+    filtersContainer.style.cssText = 'display:flex;align-items:center;gap:12px;';
 
     const sortSelect = document.createElement('select');
     sortSelect.className = 'form-control';
-    sortSelect.style.cssText = 'width:200px;height:38px;';
+    sortSelect.style.cssText = 'width:auto;min-width:120px;height:32px;border-radius:6px;border:1px solid var(--color-border);font-size:13px;padding:0 12px;display:flex;align-items:center;line-height:1;box-sizing:border-box;';
     sortSelect.id = 'org-sort-select';
     [
       { label: 'Sort: Recently Modified', val: 'modifiedDate:desc' },
@@ -1494,33 +1514,42 @@ const RecordsPage = (() => {
       _state.page = 0;
       _runQuery();
     });
-    row3.appendChild(sortSelect);
+    filtersContainer.appendChild(sortSelect);
 
     const filterBtn = document.createElement('button');
     filterBtn.className = 'btn btn-secondary';
-    filterBtn.style.cssText = 'height:38px;display:flex;align-items:center;gap:6px';
     filterBtn.id = 'org-filter-btn';
-    filterBtn.innerHTML = `Filter ▼`;
+    
+    // Count active filters
+    const activeFilterCount = Object.entries(_state.filters).reduce((count, [key, val]) => {
+      if (key === 'status' && val === 'all') return count;
+      if (val === null || val === undefined || val === '' || val === false) return count;
+      return count + 1;
+    }, 0);
+    
+    const badgeHtml = activeFilterCount > 0 
+      ? `<span class="filter-count-badge" style="background:var(--color-primary);color:#fff;font-size:9px;font-weight:bold;border-radius:50%;width:16px;height:16px;display:flex;align-items:center;justify-content:center;margin-left:6px;flex-shrink:0;">${activeFilterCount}</span>`
+      : '';
+      
+    filterBtn.innerHTML = `Filter${badgeHtml}`;
+    filterBtn.style.cssText = 'height:32px;font-size:13px;padding:0 16px;display:flex;align-items:center;line-height:1;box-sizing:border-box;gap:6px;position:relative;border-radius:6px;border:1px solid var(--color-border);background-color:var(--color-surface);color:var(--color-text-secondary);font-weight:500;';
     filterBtn.addEventListener('click', () => _toggleFiltersDrawer(true));
-    row3.appendChild(filterBtn);
+    filtersContainer.appendChild(filterBtn);
 
-    workspace.appendChild(row3);
+    row3.appendChild(filtersContainer);
 
-    // ROW 4 — Content
-    const row4 = document.createElement('div');
-    row4.style.cssText = 'width:100%;margin-top:12px';
-
-    const contentHeader = document.createElement('div');
-    contentHeader.style.cssText = 'display:flex;align-items:center;justify-content:flex-end;width:100%;margin-bottom:16px';
+    // Right side: view mode switcher
+    const viewBtnsContainer = document.createElement('div');
+    viewBtnsContainer.style.cssText = 'display:flex;align-items:center;gap:4px;';
 
     const listBtn = document.createElement('button');
     listBtn.className = `btn btn-ghost btn-sm ${_state.displayMode === 'list' ? 'btn-primary' : ''}`;
-    listBtn.style.padding = '4px 8px';
+    listBtn.style.cssText = 'height:32px;font-size:13px;padding:0 12px;display:flex;align-items:center;line-height:1;box-sizing:border-box;';
     listBtn.textContent = '☰ List';
 
     const gridBtn = document.createElement('button');
     gridBtn.className = `btn btn-ghost btn-sm ${_state.displayMode === 'grid' ? 'btn-primary' : ''}`;
-    gridBtn.style.padding = '4px 8px';
+    gridBtn.style.cssText = 'height:32px;font-size:13px;padding:0 12px;display:flex;align-items:center;line-height:1;box-sizing:border-box;';
     gridBtn.textContent = '▦ Grid';
 
     listBtn.addEventListener('click', () => {
@@ -1539,9 +1568,15 @@ const RecordsPage = (() => {
       _renderList();
     });
 
-    contentHeader.appendChild(listBtn);
-    contentHeader.appendChild(gridBtn);
-    row4.appendChild(contentHeader);
+    viewBtnsContainer.appendChild(listBtn);
+    viewBtnsContainer.appendChild(gridBtn);
+    row3.appendChild(viewBtnsContainer);
+
+    workspace.appendChild(row3);
+
+    // ROW 4 — Content
+    const row4 = document.createElement('div');
+    row4.style.cssText = 'width:100%;margin-top:12px';
 
     const listWrap = document.createElement('div');
     listWrap.id = 'records-list-wrap';

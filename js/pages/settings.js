@@ -6,8 +6,8 @@
 
 const SettingsPage = (() => {
 
-  const APP_VERSION = '1.2.0-stable';
-  const BUILD_DATE  = '2026-07-05';
+  const APP_VERSION = '1.2.1-stable';
+  const BUILD_DATE  = '2026-07-06';
 
   let _activeTab = 'general';
   let _allRecords = [];
@@ -627,14 +627,52 @@ const SettingsPage = (() => {
         <div class="review-block" style="margin:0">
           <div class="review-block-title" style="display:flex;justify-content:space-between;align-items:center">
             <span>System Version History</span>
-            <span class="badge badge-success">v1.2.0-stable</span>
+            <span class="badge badge-success">v1.2.1-stable</span>
           </div>
           <p class="form-hint" style="margin-bottom:var(--space-4)">Record of new features, bug fixes, and performance improvements applied to the application.</p>
           
           <div class="timeline">
             <div class="timeline-item">
               <div class="timeline-dot active"></div>
-              <h4 class="timeline-title">v1.2.0 <span class="timeline-date">July 2026 (Current)</span></h4>
+              <h4 class="timeline-title">v1.2.1 <span class="timeline-date">July 6, 2026 (Current)</span></h4>
+              <ul class="timeline-list">
+                <li><strong>UX Enhancement:</strong> Tweaked sidebar layout aesthetics by making the sidebar right border, sidebar logo bottom border, and sidebar footer top border transparent.</li>
+                <li><strong>UX Enhancement:</strong> Adjusted header styling to have a transparent background, no backdrop filter, and no box shadow.</li>
+                <li><strong>UX Enhancement:</strong> Added 1-word titles under the quick access buttons in the ICS Records right context panel.</li>
+                <li><strong>UX Enhancement:</strong> Removed bottom paddings and margins from context panel body and inspector cards for a tighter layout.</li>
+                <li><strong>UX Enhancement:</strong> Unified filter dropdowns and list/grid toggle buttons into a single clean combined row in the ICS Records workspace.</li>
+                <li><strong>UX Enhancement:</strong> Aligned workspace control items (filters, view toggles) to the right and unified control sizes to 32px height.</li>
+                <li><strong>UX Enhancement:</strong> Custom-tailored segmented switcher styles for view toggles with elegant backgrounds and dark theme fallbacks.</li>
+                <li><strong>UX Enhancement:</strong> Refined workspace control row by removing redundant status dropdown and integrating a reactive active-filter count badge on the Filter button.</li>
+                <li><strong>UX Enhancement:</strong> Re-designed report and record viewer tabs to use a premium, modern pill-shaped design with theme-aware translucent colors.</li>
+                <li><strong>UX Enhancement:</strong> Added matching SVG icons inside the report categories switcher tabs for improved visual scanning.</li>
+                <li><strong>UX Enhancement:</strong> Refined Reports interface with a collapsible filter panel and a new compact, unpadded search bar with inline quick-filter capabilities.</li>
+                <li><strong>UX Enhancement:</strong> Grouped the notifications list feed with custom, theme-friendly temporal timeline headers, designing them as compact, borderless list rows with a transparent background, center-aligned items, and subtle bottom dividers.</li>
+                <li><strong>UX Enhancement:</strong> Redesigned timeline headers to use sticky, transparent backdrop-filtered 22px headers, prepending collapsible carets and animated clock icons with hover scaling.</li>
+                <li><strong>UX Enhancement:</strong> Rebuilt the toast notification system with a physics-based bounce transition, border-left colored status lines, and full light/dark theme surface adaptability.</li>
+                <li><strong>UX Enhancement:</strong> Redesigned the main dashboard stat cards grid to be fully fluid and horizontally oriented with compact flex layout styling.</li>
+                <li><strong>UX Enhancement:</strong> Added personalized time-aware greetings and a Customize button in the main hero header.</li>
+                <li><strong>Feature:</strong> Added native drag-and-drop sort functionality to rearrange dashboard statistics cards in real-time.</li>
+                <li><strong>Feature:</strong> Added desktop system notifications request prompt on page load for dynamic event alerting.</li>
+                <li><strong>Feature:</strong> Added an enhanced dynamic "Urgent Attention Required" widget to the top of the dashboard with two-tiered hover scaling cards.</li>
+                <li><strong>Feature:</strong> Added customizable stat cards for "Total Inventory Value" and widgets for "Distribution by Office".</li>
+                <li><strong>UX Enhancement:</strong> Refined mobile responsiveness for customization drawer transitions and dashboard hero button wraps.</li>
+                <li><strong>UX Enhancement:</strong> Fixed page header and subtitle indentation across workspace and list layouts.</li>
+                <li><strong>UX Enhancement:</strong> Relocated the "Mark all read" action to render as an inline text link inside the primary timeline header.</li>
+                <li><strong>UX Enhancement:</strong> Unified persistent persistent panel and slide-over context drawer rendering with real-time sync capabilities.</li>
+                <li><strong>UX Enhancement:</strong> Redesigned Notifications right context panel to show real-time notification summaries and automated integrity engine status cards.</li>
+                <li><strong>Fix:</strong> Corrected tablet portrait viewport layout by maintaining flex layouts to prevent sidebar content offsets.</li>
+                <li><strong>UX Enhancement:</strong> Restricted full-width context drawer to mobile views, preserving standard width (360px) in tablet portrait.</li>
+                <li><strong>UX Enhancement:</strong> Upgraded dashboard right context panel with database statistics hover cards and circular health gauges.</li>
+                <li><strong>UX Enhancement:</strong> Set context panel body and drawer overlays to transparent backgrounds.</li>
+                <li><strong>UX Enhancement:</strong> Added orientation-aware context drawer theme styles (soft solid backgrounds in portrait, transparent backgrounds in landscape).</li>
+                <li><strong>UX Enhancement:</strong> Removed all vertical layout borders and zeroed out app container gaps for a seamless borderless layout design.</li>
+              </ul>
+            </div>
+
+            <div class="timeline-item">
+              <div class="timeline-dot"></div>
+              <h4 class="timeline-title">v1.2.0 <span class="timeline-date">July 2026</span></h4>
               <ul class="timeline-list">
                 <li><strong>Major Update:</strong> Refactored the Developer Panel to use a clean grid layout, staging badge indicator, and a custom dark-theme JSON syntax viewer.</li>
                 <li><strong>Feature:</strong> Built an integrated, mobile-optimized global search bar that replicates search queries with touch-friendly layouts.</li>

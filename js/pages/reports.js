@@ -19,7 +19,9 @@ const ReportsPage = (() => {
     recipient: '',
     office: '',
     entity: '',
-    status: 'all'
+    status: 'all',
+    quickQuery: '',
+    showAdvSearch: false
   };
 
   /* ----------------------------------------------------------
@@ -110,6 +112,15 @@ const ReportsPage = (() => {
     const catsRow = document.createElement('div');
     catsRow.className = 'viewer-tabs';
     catsRow.style.marginBottom = 'var(--space-4)';
+    
+    const tabIcons = {
+      "ics-register": '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>',
+      "property-recipient": '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px;"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>',
+      "inventory-summary": '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px;"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>',
+      "eul-expired": '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px;"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>',
+      "eul-approaching": '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>'
+    };
+
     const cats = [
       { key: 'ics-register',         label: 'ICS Slips Register' },
       { key: 'property-recipient',    label: 'Accountability per Recipient' },
@@ -120,7 +131,10 @@ const ReportsPage = (() => {
     cats.forEach(c => {
       const btn = document.createElement('button');
       btn.className = `viewer-tab-btn ${c.key === _activeReport ? 'active' : ''}`;
-      btn.textContent = c.label;
+      
+      const iconHTML = tabIcons[c.key] || '';
+      btn.innerHTML = `${iconHTML}<span>${c.label}</span>`;
+      
       btn.addEventListener('click', () => {
         _activeReport = c.key;
         _renderWorkspace(workspace);
@@ -129,10 +143,39 @@ const ReportsPage = (() => {
     });
     workspace.appendChild(catsRow);
 
+    // 2. Create the compact filter bar
+    const filterBar = document.createElement('div');
+    filterBar.id = 'compact-filter-bar';
+    filterBar.style.cssText = 'display:flex;align-items:center;gap:12px;margin-bottom:16px;padding:0px;background-color:transparent;border:none;';
+
+    // Add a Filter Button that toggles the drawer or panel
+    const filterToggle = document.createElement('button');
+    filterToggle.innerHTML = `
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:8px"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg>
+      <span>Filter</span>
+    `;
+    filterToggle.className = `btn ${_filters.showAdvSearch ? 'btn-primary' : 'btn-secondary'} btn-sm`;
+    filterToggle.style.cssText = 'display:flex;align-items:center;height:32px;font-size:13px;padding:0 12px;';
+
+    // Add a quick search/filter input for the current view
+    const inlineSearch = document.createElement('input');
+    inlineSearch.type = 'text';
+    inlineSearch.placeholder = 'Quick filter results...';
+    inlineSearch.value = _filters.quickQuery || '';
+    inlineSearch.style.cssText = 'flex:1;height:32px;padding:0 12px;border:1px solid var(--color-border);background-color:var(--color-surface);color:var(--color-text-primary);border-radius:6px;font-size:13px;outline:none;box-shadow:rgba(0, 0, 0, 0.05) 0px 1px 2px 0px;';
+    inlineSearch.addEventListener('input', (e) => {
+      _filters.quickQuery = e.target.value;
+      _renderDataGrid(workspace);
+    });
+
+    filterBar.appendChild(filterToggle);
+    filterBar.appendChild(inlineSearch);
+    workspace.appendChild(filterBar);
+
     // Filters Panel
     const filterPanel = document.createElement('div');
     filterPanel.className = 'adv-search-panel active';
-    filterPanel.style.marginBottom = 'var(--space-4)';
+    filterPanel.style.cssText = `margin-bottom:var(--space-4); display:${_filters.showAdvSearch ? 'flex' : 'none'};`;
     
     // Build filter fields based on report type
     if (_activeReport === 'property-recipient') {
@@ -165,6 +208,14 @@ const ReportsPage = (() => {
     }
 
     workspace.appendChild(filterPanel);
+
+    // Toggle event listener
+    filterToggle.addEventListener('click', () => {
+      _filters.showAdvSearch = !_filters.showAdvSearch;
+      filterPanel.style.display = _filters.showAdvSearch ? 'flex' : 'none';
+      filterToggle.classList.toggle('btn-primary', _filters.showAdvSearch);
+      filterToggle.classList.toggle('btn-secondary', !_filters.showAdvSearch);
+    });
 
     // Bind filters input triggers
     filterPanel.querySelectorAll('input, select').forEach(input => {
@@ -204,7 +255,17 @@ const ReportsPage = (() => {
     if (!grid) return;
     grid.innerHTML = '';
 
-    const data = _compileActiveReportData();
+    let data = _compileActiveReportData();
+
+    if (_filters.quickQuery) {
+      const q = _filters.quickQuery.trim().toLowerCase();
+      data = {
+        headers: data.headers,
+        rows: data.rows.filter(row => 
+          row.some(cell => String(cell).toLowerCase().includes(q))
+        )
+      };
+    }
 
     if (data.rows.length === 0) {
       grid.innerHTML = `
