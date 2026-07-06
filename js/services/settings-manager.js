@@ -33,41 +33,119 @@ const SettingsManager = (() => {
     { id: 'slate',    name: 'Slate',    type: 'color',    val: '#1e293b',  glass: 'rgba(255, 255, 255, 0.1)',    accent: '#94a3b8' },
     { id: 'sunset',   name: 'Sunset',   type: 'gradient', val: 'linear-gradient(135deg, #fbc2eb 0%, #a6c1ee 100%)', glass: 'rgba(255, 255, 255, 0.7)',  accent: '#d946ef' },
     { id: 'ocean',    name: 'Ocean',    type: 'image',    val: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1200&q=80', glass: 'rgba(255, 255, 255, 0.65)', accent: '#06b6d4' },
-    { id: 'mountain', name: 'Mountain', type: 'image',    val: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=1200&q=80', glass: 'rgba(255, 255, 255, 0.7)',  accent: '#10b981' }
+    { id: 'mountain', name: 'Mountain', type: 'image',    val: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=1200&q=80', glass: 'rgba(255, 255, 255, 0.7)',  accent: '#0ea5a4' },
   ];
 
+  // Robust theme applier: returns true on success, false if themeId not found
   window.applyAppTheme = (themeId) => {
     const theme = themes.find(t => t.id === themeId);
-    if (!theme) return;
-
-    const body = document.body;
     const root = document.documentElement;
+    const body = document.body;
 
-    // Apply per-theme accent color and soft variant
-    root.style.setProperty('--color-primary', theme.accent);
-    root.style.setProperty('--color-primary-hover', theme.accent);
-    root.style.setProperty('--color-primary-soft', theme.accent + '22');
+    // Helper: convert #RRGGBB or #RGB to rgba(r,g,b,a)
+    function hexToRgba(hex, alpha = 0.133) {
+      if (!hex || typeof hex !== 'string') return null;
+      let h = hex.replace('#', '').trim();
+      if (h.length === 3) {
+        h = h.split('').map(c => c + c).join('');
+      }
+      if (h.length !== 6) return null;
+      const r = parseInt(h.slice(0,2), 16);
+      const g = parseInt(h.slice(2,4), 16);
+      const b = parseInt(h.slice(4,6), 16);
+      return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+    }
 
-    // Apply glass tint for background overlay elements
-    root.style.setProperty('--glass-color', theme.glass);
+    // If theme doesn't exist, clear previously-applied bg/theme variables and return false
+    if (!theme) {
+      // Clear accents
+      root.style.removeProperty('--color-primary');
+      root.style.removeProperty('--color-primary-hover');
+      root.style.removeProperty('--color-primary-soft');
+      root.style.removeProperty('--glass-color');
+      // Clear body background
+      body.style.backgroundImage = '';
+      body.style.backgroundColor = '';
+      body.classList.remove('workspace-enhanced-bg', 'workspace-bg-loading');
+      // Clear active thumb if present
+      try { document.querySelectorAll('.theme-thumb').forEach(t => t.classList.remove('active')); } catch (e) {}
+      return false;
+    }
 
-    // Update active thumbnail classes
-    document.querySelectorAll('.theme-thumb').forEach(t => t.classList.remove('active'));
-    const activeThumb = document.querySelector(`[data-theme-id="${themeId}"]`);
-    if (activeThumb) activeThumb.classList.add('active');
+    // Compute safe accent + soft variant
+    const accent = theme.accent || '';
+    let soft = null;
+    if (accent.startsWith('#')) {
+      // Use ~0.133 alpha (hex 22 ≈ 34/255 ≈ 0.133)
+      soft = hexToRgba(accent, 0.133);
+    } else if (/^rgba?\(/.test(accent)) {
+      // If already rgba() or rgb(), add alpha if missing (simple approach)
+      soft = accent.replace(/rgba?\(([^)]+)\)/, (m, inner) => {
+        const parts = inner.split(',').map(p => p.trim());
+        // If already has 4th alpha value, reduce it
+        if (parts.length === 4) {
+          const a = parseFloat(parts[3]);
+          parts[3] = Math.max(0, Math.min(1, a * 0.6)).toString();
+        } else {
+          parts.push('0.13');
+        }
+        return `rgba(${parts.join(', ')})`;
+      });
+    } else {
+      // Fallback: attempt to use provided value as-is (best-effort)
+      soft = accent || null;
+    }
 
-    // Apply background
+    // Apply CSS variables
+    if (accent) root.style.setProperty('--color-primary', accent);
+    root.style.setProperty('--color-primary-hover', accent || '');
+    if (soft) root.style.setProperty('--color-primary-soft', soft);
+    if (theme.glass) root.style.setProperty('--glass-color', theme.glass);
+
+    // Update active thumbnail classes if thumbnails exist
+    try {
+      document.querySelectorAll('.theme-thumb').forEach(t => t.classList.remove('active'));
+      const activeThumb = document.querySelector(`[data-theme-id="${themeId}"]`);
+      if (activeThumb) activeThumb.classList.add('active');
+    } catch (e) {
+      // ignore — thumbnails may not be in DOM yet
+    }
+
+    // Apply background depending on type.
+    // For images, preload then apply to avoid flash and wasted reflows.
     if (theme.type === 'image') {
-      body.style.backgroundImage = `url(${theme.val})`;
-      body.classList.add('workspace-enhanced-bg');
+      // indicate loading state
+      body.classList.add('workspace-bg-loading');
+      const img = new Image();
+      img.onload = () => {
+        try {
+          body.style.backgroundImage = `url("${theme.val}")`;
+          body.classList.add('workspace-enhanced-bg');
+        } catch (e) {
+          body.style.backgroundImage = '';
+          body.classList.remove('workspace-enhanced-bg');
+        }
+        body.classList.remove('workspace-bg-loading');
+      };
+      img.onerror = () => {
+        body.style.backgroundImage = '';
+        body.classList.remove('workspace-enhanced-bg', 'workspace-bg-loading');
+      };
+      // start preload; this will start network fetch but only set background after load
+      img.src = theme.val;
     } else if (theme.type === 'gradient') {
+      // apply gradient directly
       body.style.backgroundImage = theme.val;
       body.classList.add('workspace-enhanced-bg');
+      body.classList.remove('workspace-bg-loading');
     } else {
+      // color or default
       body.style.backgroundImage = 'none';
-      body.style.backgroundColor = theme.val;
-      body.classList.remove('workspace-enhanced-bg');
+      body.style.backgroundColor = theme.val || '';
+      body.classList.remove('workspace-enhanced-bg', 'workspace-bg-loading');
     }
+
+    return true;
   };
 
   function get() {
@@ -87,7 +165,12 @@ const SettingsManager = (() => {
         document.documentElement.setAttribute('data-theme', settings.theme);
       }
       if (settings.bgTheme) {
-        window.applyAppTheme(settings.bgTheme);
+        // applyAppTheme returns true if theme applied; fallback to default if false
+        const applied = window.applyAppTheme(settings.bgTheme);
+        if (!applied) {
+          // fallback to default theme to avoid leaving stale state
+          try { window.applyAppTheme(DEFAULTS.bgTheme); } catch (e) {}
+        }
       }
     } catch (err) {
       console.error('[SettingsManager] Save error:', err);
