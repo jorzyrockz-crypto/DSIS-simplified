@@ -748,6 +748,7 @@ const SettingsPage = (() => {
                 <li><strong>Feature:</strong> Material Design toggle in Settings > Appearance with theme locking.</li>
                 <li><strong>UX Enhancement:</strong> Tweaked sidebar layout aesthetics by making the sidebar right border, sidebar logo bottom border, and sidebar footer top border transparent.</li>
                 <li><strong>UX Enhancement:</strong> Relocated and integrated the Experimental Features panel inside the Developer grid, utilizing uppercase Zinc 400 headers and custom checkbox variables.</li>
+                <li><strong>Fix:</strong> Corrected header height to a strict 60px size and adjusted the settings workspace layout to eliminate taller header offsets.</li>
               </ul>
             </div>
 
