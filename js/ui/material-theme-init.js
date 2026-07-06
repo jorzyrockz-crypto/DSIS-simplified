@@ -8,7 +8,7 @@
   
   function initMaterialTheme() {
     try {
-      const materialThemeEnabled = localStorage.getItem('ics-material-theme') === 'true';
+      const materialThemeEnabled = localStorage.getItem('material-theme-active') === 'true' || localStorage.getItem('ics-material-theme') === 'true';
       const isDarkMode = localStorage.getItem('ics-theme') === 'dark';
       
       if (materialThemeEnabled) {

@@ -28,11 +28,18 @@ const SettingsPage = (() => {
 
   // Material Theme helpers
   function _getMaterialThemeState() {
-    try { return localStorage.getItem('ics-material-theme') === 'true'; } catch { return false; }
+    try {
+      return localStorage.getItem('material-theme-active') === 'true' || localStorage.getItem('ics-material-theme') === 'true';
+    } catch {
+      return false;
+    }
   }
 
   function _setMaterialThemeState(val) {
-    try { localStorage.setItem('ics-material-theme', String(val)); } catch {}
+    try {
+      localStorage.setItem('material-theme-active', String(val));
+      localStorage.setItem('ics-material-theme', String(val));
+    } catch {}
   }
 
   function _applyMaterialTheme(enabled) {
@@ -740,6 +747,7 @@ const SettingsPage = (() => {
                 <li><strong>Feature:</strong> Added Material Design 3 theme system with ripple effects and elevation tokens.</li>
                 <li><strong>Feature:</strong> Material Design toggle in Settings > Appearance with theme locking.</li>
                 <li><strong>UX Enhancement:</strong> Tweaked sidebar layout aesthetics by making the sidebar right border, sidebar logo bottom border, and sidebar footer top border transparent.</li>
+                <li><strong>UX Enhancement:</strong> Relocated and integrated the Experimental Features panel inside the Developer grid, utilizing uppercase Zinc 400 headers and custom checkbox variables.</li>
               </ul>
             </div>
 
@@ -851,20 +859,6 @@ const SettingsPage = (() => {
             Staging Mode Active
           </div>
         </div>
-
-        <!-- Material Theme Preview Section -->
-        <div style="margin-top:var(--space-6); display:flex; gap:12px; align-items:center; background:var(--color-info-light); padding:var(--space-4); border-radius:var(--radius-md)">
-          <div style="flex:1">
-            <div style="font-weight:600">Material Theme (Developer preview)</div>
-            <div style="font-size:12px; color:var(--color-text-secondary)">This is the Material Design 3 token system. Also available in Settings > Appearance.</div>
-          </div>
-          <div style="flex-shrink:0; display:flex; align-items:center; gap:8px">
-            <label style="display:flex; align-items:center; gap:8px; cursor:pointer">
-              <input type="checkbox" id="set-material-checkbox"${_getMaterialThemeState() ? ' checked' : ''}>
-              <span style="font-size:13px">Enable</span>
-            </label>
-          </div>
-        </div>
       </div>
 
       <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap:var(--space-6);">
@@ -890,6 +884,27 @@ const SettingsPage = (() => {
           </div>
         </div>
 
+        <!-- Experimental Features Card -->
+        <div class="review-block dev-testing-section" style="margin:0; border:1px solid var(--color-border); background:var(--color-surface); padding:20px; display:flex; flex-direction:column; justify-content:space-between;">
+          <div>
+            <h3 style="font-size: 16px; font-weight: 600; color: #a1a1aa; text-transform: uppercase; letter-spacing: 0.64px; margin-bottom: 4px; margin-top: 0;">Experimental Features</h3>
+            <p class="form-hint" style="font-size: 12px; color: #71717a; margin-top: 0; margin-bottom: 0;">Enable or disable new experimental designs.</p>
+          </div>
+          
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 12px; padding: 0; background: transparent;">
+            <div style="flex: 1">
+              <div style="font-size: 14px; font-weight: 500; color: var(--color-text-primary)">Material Theme (Developer preview)</div>
+              <p style="font-size: 12px; color: #71717a; margin: 4px 0 0 0">This is the Material Design 3 token system. Also available in Settings > Appearance.</p>
+            </div>
+            <div style="flex-shrink:0; display:flex; align-items:center; gap:8px">
+              <label style="display:flex; align-items:center; gap:8px; cursor:pointer">
+                <input type="checkbox" id="dev-mat-toggle"${_getMaterialThemeState() ? ' checked' : ''}>
+                <span style="font-size:13px">Enable</span>
+              </label>
+            </div>
+          </div>
+        </div>
+
         <!-- State Inspector Card -->
         <div class="review-block" style="margin:0; border:1px solid var(--color-border); background:var(--color-surface); padding:var(--space-5)">
           <div class="review-block-title" style="font-size:16px; font-weight:600; margin-bottom:4px">Raw Database Records</div>
@@ -910,7 +925,7 @@ const SettingsPage = (() => {
     _applyMaterialTheme(_getMaterialThemeState());
 
     // Wire material checkbox
-    const matCheckbox = container.querySelector('#set-material-checkbox');
+    const matCheckbox = container.querySelector('#dev-mat-toggle');
     if (matCheckbox) {
       matCheckbox.addEventListener('change', e => {
         const enabled = !!e.target.checked;
