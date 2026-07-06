@@ -3210,19 +3210,44 @@ body.workspace-enhanced-bg {
   transition: background 0.5s ease-in-out, background-color 0.5s ease !important;
 }
 
-body.workspace-enhanced-bg #app,
+/* Unify Top Navbar, Sidebar, and Right Panel backgrounds */
+body.workspace-enhanced-bg header#header,
 body.workspace-enhanced-bg #sidebar,
 body.workspace-enhanced-bg #context-panel,
 body.workspace-enhanced-bg #context-drawer,
+body.workspace-enhanced-bg .panel-header,
+body.workspace-enhanced-bg .drawer-handle {
+  background: rgba(255, 255, 255, 0.05) !important;
+  backdrop-filter: blur(30px) saturate(150%) !important;
+  -webkit-backdrop-filter: blur(30px) saturate(150%) !important;
+  border: none !important;
+  border-right: 1px solid rgba(255, 255, 255, 0.1) !important; /* Subtle separator for sidebar */
+  border-left: 1px solid rgba(255, 255, 255, 0.1) !important;  /* Subtle separator for right panel */
+  box-shadow: none !important;
+}
+
+/* Adjust separators based on which side they are on */
+body.workspace-enhanced-bg header#header {
+   border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+   border-left: none !important;
+   border-right: none !important;
+}
+
+/* Make content cards float on top of the blurred background */
 body.workspace-enhanced-bg .context-card,
 body.workspace-enhanced-bg .stat-card,
 body.workspace-enhanced-bg .notif-card,
 body.workspace-enhanced-bg .inspector-card {
-  background: var(--glass-color, rgba(255, 255, 255, 0.75)) !important;
-  backdrop-filter: blur(20px) !important;
-  -webkit-backdrop-filter: blur(20px) !important;
+  background: rgba(255, 255, 255, 0.6) !important;
+  backdrop-filter: blur(10px) !important;
   border: 1px solid rgba(255, 255, 255, 0.2) !important;
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.05) !important;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05) !important;
+}
+
+/* Remove solid backgrounds from sub-containers */
+body.workspace-enhanced-bg #context-panel-body,
+body.workspace-enhanced-bg #context-drawer-body {
+  background: transparent !important;
 }
 
 /* Normalize workspace spacing to fix perceived header height issue */

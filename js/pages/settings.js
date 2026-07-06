@@ -749,6 +749,7 @@ const SettingsPage = (() => {
                 <li><strong>UX Enhancement:</strong> Tweaked sidebar layout aesthetics by making the sidebar right border, sidebar logo bottom border, and sidebar footer top border transparent.</li>
                 <li><strong>UX Enhancement:</strong> Relocated and integrated the Experimental Features panel inside the Developer grid, utilizing uppercase Zinc 400 headers and custom checkbox variables.</li>
                 <li><strong>Fix:</strong> Corrected header height to a strict 60px size and adjusted global workspace layouts to normalize top spacings and padding.</li>
+                <li><strong>UX Enhancement:</strong> Unified top header, sidebar, and drawer background overlays into a single translucent glass layout with border separators.</li>
               </ul>
             </div>
 
