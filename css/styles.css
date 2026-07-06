@@ -3275,3 +3275,25 @@ header#header {
   padding-top: 0 !important;
   padding-bottom: 0 !important;
 }
+
+/* Transparent headers/handles inside glass panels */
+body.workspace-enhanced-bg .panel-header,
+body.workspace-enhanced-bg #context-panel-header,
+body.workspace-enhanced-bg .drawer-handle {
+  background: transparent !important;
+  background-color: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+/* Integrate Wizard UI into Workspace Enhanced Theme */
+body.workspace-enhanced-bg .wizard-sticky-bar,
+body.workspace-enhanced-bg .form-card,
+body.workspace-enhanced-bg .wizard-step-panel {
+  background: var(--workspace-glass-bg, rgba(255, 255, 255, 0.7)) !important;
+  backdrop-filter: blur(16px) saturate(140%) !important;
+  -webkit-backdrop-filter: blur(16px) saturate(140%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.04) !important;
+  transition: background 0.3s ease, border 0.3s ease !important;
+}

@@ -837,6 +837,7 @@ const SettingsPage = (() => {
                 <li><strong>UX Enhancement:</strong> Unified top header, sidebar, and drawer background overlays into a single translucent glass layout with border separators.</li>
                 <li><strong>Feature:</strong> Introduced a Background Tint Opacity slider with real-time UI previews and local settings locking.</li>
                 <li><strong>Feature:</strong> Added granular layout transparency checkboxes to select which workspace panels should use the background glassmorphism system.</li>
+                <li><strong>UX Enhancement:</strong> Integrated the new ICS wizard components into the dynamic glassmorphism theme and center panel toggles.</li>
               </ul>
             </div>
 
