@@ -1749,6 +1749,197 @@ const NewICSPage = (() => {
     _contextBody.appendChild(_lsAutosaveCard());
   }
 
+  function _lsCompletionState() {
+    const fd = _state.formData;
+    const generalReady = !!(fd.icsNumber && fd.dateIssued && fd.issuedBy);
+    const recipientReady = !!(fd.receivedBy && fd.receivedDate);
+    const itemsReady = fd.items.length > 0;
+    return {
+      generalReady,
+      recipientReady,
+      itemsReady,
+      allReady: generalReady && recipientReady && itemsReady
+    };
+  }
+
+  function _lsGuideConfig() {
+    const fd = _state.formData;
+    const items = fd.items || [];
+    const totalValue = items.reduce((sum, item) => sum + (parseFloat(item.totalCost) || 0), 0);
+    const totalQty = items.reduce((sum, item) => sum + (parseFloat(item.quantity) || 0), 0);
+
+    return [
+      {
+        eyebrow: 'Step 1 of 4',
+        title: 'Set up the document',
+        desc: 'Establish the ICS identity and issuing details before moving into the recipient and inventory sections.',
+        iconName: 'records',
+        rows: [
+          { key: 'ICS Number', value: fd.icsNumber || 'Not specified', empty: !fd.icsNumber },
+          { key: 'Date Issued', value: fd.dateIssued ? Utils.formatDate(fd.dateIssued) : 'Not specified', empty: !fd.dateIssued },
+          { key: 'Fund Cluster', value: fd.fundCluster || 'Not specified', empty: !fd.fundCluster },
+          { key: 'Issued By', value: fd.issuedBy || 'Not specified', empty: !fd.issuedBy }
+        ],
+        filled: [
+          fd.icsNumber ? 'ICS number entered' : '',
+          fd.dateIssued ? 'Issue date captured' : '',
+          fd.fundCluster ? 'Fund cluster selected' : '',
+          fd.issuedBy ? 'Issuing officer named' : ''
+        ].filter(Boolean),
+        missing: [
+          !fd.icsNumber ? 'ICS number is still empty.' : '',
+          !fd.dateIssued ? 'Issue date has not been selected.' : '',
+          !fd.issuedBy ? 'Issued by field is still blank.' : ''
+        ].filter(Boolean)
+      },
+      {
+        eyebrow: 'Step 2 of 4',
+        title: 'Confirm the recipient',
+        desc: 'Capture who receives the property and the accountability details that will appear on the slip.',
+        iconName: 'user',
+        rows: [
+          { key: 'Recipient', value: fd.receivedBy || 'Not specified', empty: !fd.receivedBy },
+          { key: 'Position', value: fd.position || 'Not specified', empty: !fd.position },
+          { key: 'Office', value: fd.office || 'Not specified', empty: !fd.office },
+          { key: 'Received Date', value: fd.receivedDate ? Utils.formatDate(fd.receivedDate) : 'Not specified', empty: !fd.receivedDate }
+        ],
+        filled: [
+          fd.receivedBy ? 'Recipient selected' : '',
+          fd.office ? 'Office supplied' : '',
+          fd.receivedDate ? 'Receipt date ready' : ''
+        ].filter(Boolean),
+        missing: [
+          !fd.receivedBy ? 'Recipient name still needs to be filled.' : '',
+          !fd.receivedDate ? 'Received date is still missing.' : ''
+        ].filter(Boolean)
+      },
+      {
+        eyebrow: 'Step 3 of 4',
+        title: 'Build the item list',
+        desc: 'Add the accountable items, quantities, and values that make up this slip.',
+        iconName: 'package',
+        rows: [
+          { key: 'Items Added', value: String(items.length) },
+          { key: 'Total Quantity', value: String(totalQty) },
+          { key: 'Total Value', value: Utils.formatCurrency(totalValue) },
+          { key: 'Recipient', value: fd.receivedBy || 'Not specified', empty: !fd.receivedBy }
+        ],
+        filled: items.slice(0, 3).map(item => item.description || '(unnamed item)'),
+        missing: items.length
+          ? [`${Math.max(items.length - 3, 0)} more item(s) stay available in the main table.`].filter(text => !text.startsWith('0 '))
+          : ['No items have been added yet.']
+      },
+      {
+        eyebrow: 'Step 4 of 4',
+        title: 'Review before saving',
+        desc: 'Double-check the full slip, then save once the document, recipient, and item sections are all complete.',
+        iconName: 'check',
+        rows: [
+          { key: 'Recipient', value: fd.receivedBy || 'Not specified', empty: !fd.receivedBy },
+          { key: 'ICS Number', value: fd.icsNumber || 'Not specified', empty: !fd.icsNumber },
+          { key: 'Items', value: String(items.length) },
+          { key: 'Total Value', value: Utils.formatCurrency(totalValue) }
+        ],
+        filled: [
+          fd.icsNumber ? 'Document details are present' : '',
+          fd.receivedBy ? 'Recipient details are present' : '',
+          items.length ? `${items.length} item(s) ready for final review` : ''
+        ].filter(Boolean),
+        missing: []
+      }
+    ][_state.step - 1];
+  }
+
+  function _lsBuildGuideCard() {
+    const guide = _lsGuideConfig();
+    const card = Components.contextLead({
+      eyebrow: guide.eyebrow,
+      title: guide.title,
+      desc: guide.desc,
+      iconName: guide.iconName,
+      badge: `Step ${_state.step}`,
+      tier: 'hero'
+    });
+    card.appendChild(Components.contextKeyValueList(guide.rows));
+    return card;
+  }
+
+  function _lsBuildCompletionCard() {
+    const guide = _lsGuideConfig();
+    const card = Components.contextCard({
+      title: 'What is Filled / Missing',
+      iconName: 'info',
+      subtitle: 'The panel keeps the current step concise so you can scan progress without losing readability.',
+      tier: 'supporting'
+    });
+
+    const sections = [];
+    if (guide.filled.length) {
+      sections.push(...guide.filled.map(text => ({
+        icon: Components.icon('check'),
+        title: text,
+        meta: 'Completed'
+      })));
+    }
+    if (guide.missing.length) {
+      sections.push(...guide.missing.map(text => ({
+        icon: Components.icon('alert'),
+        title: text,
+        meta: 'Needs attention'
+      })));
+    }
+
+    if (!sections.length) {
+      sections.push({
+        icon: Components.icon('check'),
+        title: 'Everything needed for this step is in place.',
+        meta: 'No blockers detected.'
+      });
+    }
+
+    card.querySelector('.context-card-body').appendChild(
+      Components.contextList(sections, { compact: true })
+    );
+    return card;
+  }
+
+  function _lsBuildStatusCard() {
+    const completion = _lsCompletionState();
+    const pct = Math.round((_state.step / _state.totalSteps) * 100);
+    const statusText = _autosaveStatus === 'saving'
+      ? 'Saving changes now'
+      : (_autosaveStatus === 'error'
+        ? 'Autosave needs attention'
+        : (_autosaveStatus === 'unsaved' ? 'Changes not saved yet' : 'All changes saved'));
+
+    const card = Components.contextCard({
+      title: 'Progress & Save Status',
+      iconName: 'clock',
+      subtitle: completion.allReady ? 'This slip is ready for saving.' : 'Final blockers stay visible here as you move between steps.',
+      tier: 'status'
+    });
+    const body = card.querySelector('.context-card-body');
+    body.appendChild(Components.contextMetricGrid([
+      { label: 'Progress', value: `${pct}%`, caption: `Step ${_state.step} of ${_state.totalSteps}` },
+      { label: 'Autosave', value: statusText, caption: completion.allReady ? 'Ready to save' : 'Still checking required sections' }
+    ]));
+    body.appendChild(Components.contextKeyValueList([
+      { key: 'General Info', value: completion.generalReady ? 'Ready' : 'Incomplete', emphasis: completion.generalReady ? 'success' : 'warning' },
+      { key: 'Recipient', value: completion.recipientReady ? 'Ready' : 'Incomplete', emphasis: completion.recipientReady ? 'success' : 'warning' },
+      { key: 'Items', value: completion.itemsReady ? 'Ready' : 'Incomplete', emphasis: completion.itemsReady ? 'success' : 'warning' },
+      { key: 'Final Status', value: completion.allReady ? 'Ready to Save' : 'Blocked', emphasis: completion.allReady ? 'success' : 'warning' }
+    ]));
+    return card;
+  }
+
+  function _renderContextPanel() {
+    if (!_contextBody) return;
+    _contextBody.innerHTML = '';
+    _contextBody.appendChild(_lsBuildGuideCard());
+    _contextBody.appendChild(_lsBuildCompletionCard());
+    _contextBody.appendChild(_lsBuildStatusCard());
+  }
+
   /* ----------------------------------------------------------
      Keyboard Shortcuts Wires
      ---------------------------------------------------------- */

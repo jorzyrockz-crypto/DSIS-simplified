@@ -6,17 +6,41 @@
   Settings > Update Logs page can surface recent fixes immediately,
   without waiting for a formal version release.
 
-  Helper command:
+  Helper commands:
   node scripts/add-live-log.js --type "Fix" --text "Describe the change"
+  node scripts/add-live-log.js --item "Fix: First change" --item "Feature: Second change"
+
+  Promotion command:
+  node scripts/promote-live-log.js --version "1.2.2-stable"
 */
 window.LIVE_CHANGE_LOG_DATA = [
   {
     "version": "In Progress",
     "buildDate": "2026-07-07",
-    "dateLabel": "July 7, 2026",
+    "dateLabel": "July 8, 2026",
     "current": false,
     "live": true,
     "items": [
+      {
+        "type": "UX Enhancement",
+        "text": "Redesigned ICS Records into denser workspace-style list and grid cards with clearer hierarchy and flatter utility treatment."
+      },
+      {
+        "type": "Feature",
+        "text": "Added visible View, Edit, and Print actions directly inside Records cards while moving secondary actions into overflow menus."
+      },
+      {
+        "type": "Fix",
+        "text": "Aligned Records list rows more closely to the reference pattern by reducing detached utility blocks and tightening the modified-time action rail."
+      },
+      {
+        "type": "Fix",
+        "text": "Hardened the live changelog helper with file locking so concurrent writes do not drop entries."
+      },
+      {
+        "type": "Feature",
+        "text": "Added batch item support so one command can append multiple changelog updates at once."
+      },
       {
         "type": "Fix",
         "text": "Unified sidebar, header, center panel, and right panel theme behavior so workspace surfaces respond consistently to the selected theme."

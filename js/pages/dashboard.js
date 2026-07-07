@@ -119,6 +119,72 @@ const DashboardPage = (() => {
     });
   }
 
+  // Shared right-panel presentation override
+  function _renderContextPanel(contextBody, stats) {
+    contextBody.innerHTML = '';
+    _contextBody = contextBody;
+
+    const alerts = NotificationEngine.generate(_allRecords).slice(0, 3);
+
+    const overviewCard = Components.contextLead({
+      eyebrow: 'Database Overview',
+      title: 'Workspace Snapshot',
+      desc: 'A quick read on records, inventory volume, and current draft activity.',
+      iconName: 'dashboard',
+      badge: `${stats.total} Records`,
+      tier: 'hero'
+    });
+    overviewCard.appendChild(Components.contextMetricGrid([
+      { label: 'Records', value: String(stats.total) },
+      { label: 'Items', value: String(stats.totalItems) },
+      { label: 'Drafts', value: String(stats.drafts) },
+      { label: 'Asset Value', value: `PHP ${stats.totalCost.toLocaleString()}` }
+    ]));
+    contextBody.appendChild(overviewCard);
+
+    const healthCard = Components.contextCard({
+      title: 'Workspace Health',
+      iconName: 'check',
+      tier: 'supporting'
+    });
+    healthCard.querySelector('.context-card-body').appendChild(Components.contextList([{
+      icon: Components.icon('check'),
+      title: 'System Stable',
+      meta: 'All syncs completed and the local workspace is ready for use.',
+      trailing: '<span class="context-pill">98%</span>'
+    }], { compact: true }));
+    contextBody.appendChild(healthCard);
+
+    const alertsCard = Components.contextCard({
+      title: 'Recent Alerts',
+      iconName: 'notifications',
+      subtitle: alerts.length ? 'Most recent integrity items needing a look.' : 'No active alerts right now.',
+      tier: 'status'
+    });
+    const alertsBody = alertsCard.querySelector('.context-card-body');
+    if (alerts.length === 0) {
+      const empty = document.createElement('div');
+      empty.className = 'context-list-meta';
+      empty.textContent = 'Everything looks clear across the current records.';
+      alertsBody.appendChild(empty);
+    } else {
+      alertsBody.appendChild(Components.contextList(alerts.map(a => {
+        const badgeClass = a.category === 'critical'
+          ? 'badge-danger'
+          : (a.category === 'warning' ? 'badge-warning' : (a.category === 'reminder' ? 'badge-info' : 'badge-neutral'));
+        return {
+          clickable: true,
+          icon: Components.icon(a.category === 'reminder' ? 'clock' : a.category === 'info' ? 'info' : 'alert'),
+          title: a.title,
+          meta: a.message || 'Open this record to review details.',
+          trailing: `<span class="badge ${badgeClass}" style="font-size:9px;padding:2px 6px;border-radius:999px;">${Utils.capitalise(a.category)}</span>`,
+          onClick: () => Router.navigate(`#view?id=${a.recordId}`)
+        };
+      }), { compact: true }));
+    }
+    contextBody.appendChild(alertsCard);
+  }
+
   /* ----------------------------------------------------------
      Main Render
      ---------------------------------------------------------- */

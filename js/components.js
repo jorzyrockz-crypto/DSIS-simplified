@@ -151,17 +151,121 @@ const Components = (() => {
   }
 
   // ── Context Card (right panel) ────────────────────────────────────────────
-  function contextCard({ title = '', body = '', iconName = '' } = {}) {
+  function contextCard({ title = '', body = '', iconName = '', tier = 'supporting', subtitle = '' } = {}) {
     const el = document.createElement('div');
-    el.className = 'context-card';
+    el.className = `context-card context-card--${tier}`;
     el.innerHTML = `
       <div class="context-card-title">
         ${iconName ? icon(iconName) : ''}
-        ${title}
+        <span>${title}</span>
       </div>
+      ${subtitle ? `<div class="context-card-subtitle">${subtitle}</div>` : ''}
       <div class="context-card-body">${body}</div>
     `;
     return el;
+  }
+
+  function contextLead({ eyebrow = '', title = '', desc = '', iconName = '', badge = '', tier = 'hero' } = {}) {
+    const el = document.createElement('div');
+    el.className = `context-card context-card--${tier}`;
+    el.innerHTML = `
+      <div class="context-lead-head">
+        <div class="context-lead-copy">
+          ${eyebrow ? `<div class="context-lead-eyebrow">${eyebrow}</div>` : ''}
+          <div class="context-lead-title-row">
+            ${iconName ? `<span class="context-lead-icon">${icon(iconName)}</span>` : ''}
+            <h4 class="context-lead-title">${title}</h4>
+          </div>
+          ${desc ? `<p class="context-lead-desc">${desc}</p>` : ''}
+        </div>
+        ${badge ? `<span class="context-pill">${badge}</span>` : ''}
+      </div>
+    `;
+    return el;
+  }
+
+  function contextMetricGrid(items = []) {
+    const grid = document.createElement('div');
+    grid.className = 'context-metric-grid';
+
+    items.forEach(item => {
+      const cell = document.createElement('div');
+      cell.className = 'context-metric-item';
+      cell.innerHTML = `
+        <div class="context-metric-label">${item.label || ''}</div>
+        <div class="context-metric-value">${item.value || ''}</div>
+        ${item.caption ? `<div class="context-metric-caption">${item.caption}</div>` : ''}
+      `;
+      grid.appendChild(cell);
+    });
+
+    return grid;
+  }
+
+  function contextKeyValueList(rows = []) {
+    const list = document.createElement('div');
+    list.className = 'context-kv-list';
+
+    rows.forEach(({ key = '', value = '', empty = false, emphasis = '' }) => {
+      const row = document.createElement('div');
+      row.className = 'context-kv-row';
+      row.innerHTML = `
+        <span class="context-kv-key">${key}</span>
+        <span class="context-kv-value${empty ? ' is-empty' : ''}${emphasis ? ' is-' + emphasis : ''}">${value}</span>
+      `;
+      list.appendChild(row);
+    });
+
+    return list;
+  }
+
+  function contextActionGroup(children = []) {
+    const wrap = document.createElement('div');
+    wrap.className = 'context-action-group';
+    children.forEach(child => {
+      if (!child) return;
+      wrap.appendChild(child);
+    });
+    return wrap;
+  }
+
+  function contextList(items = [], { compact = false } = {}) {
+    const list = document.createElement('div');
+    list.className = `context-list${compact ? ' context-list--compact' : ''}`;
+
+    items.forEach(item => {
+      const row = document.createElement('div');
+      row.className = 'context-list-item';
+      if (item.clickable) {
+        row.classList.add('is-clickable');
+        row.tabIndex = 0;
+      }
+
+      row.innerHTML = `
+        <div class="context-list-main">
+          ${item.icon ? `<span class="context-list-icon">${item.icon}</span>` : ''}
+          <div class="context-list-copy">
+            <div class="context-list-title">${item.title || ''}</div>
+            ${item.meta ? `<div class="context-list-meta">${item.meta}</div>` : ''}
+          </div>
+        </div>
+        ${item.trailing ? `<div class="context-list-trailing">${item.trailing}</div>` : ''}
+      `;
+
+      if (typeof item.onClick === 'function') {
+        row.addEventListener('click', item.onClick);
+        row.addEventListener('keydown', e => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            item.onClick();
+          }
+        });
+      }
+
+      list.appendChild(row);
+    });
+
+    return list;
   }
 
   // ── ICS Record Card ───────────────────────────────────────────────────────
@@ -280,6 +384,11 @@ const Components = (() => {
     emptyState,
     sectionTitle,
     contextCard,
+    contextLead,
+    contextMetricGrid,
+    contextKeyValueList,
+    contextActionGroup,
+    contextList,
     recordCard,
     notifCard,
     reportCard,

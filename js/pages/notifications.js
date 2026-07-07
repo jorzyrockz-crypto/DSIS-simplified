@@ -94,6 +94,59 @@ const NotificationsPage = (() => {
     }
   }
 
+  function _renderContext(container) {
+    if (!container) return;
+    container.innerHTML = '';
+
+    const counts = { critical: 0, warning: 0, reminder: 0, info: 0 };
+    _notifications.forEach(n => {
+      if (counts[n.category] !== undefined) counts[n.category]++;
+    });
+
+    const lead = Components.contextLead({
+      eyebrow: 'Notifications',
+      title: 'Alert Center',
+      desc: 'A compact summary of what needs attention across the workspace.',
+      iconName: 'notifications',
+      badge: `${_notifications.length} Total`,
+      tier: 'hero'
+    });
+    lead.appendChild(Components.contextMetricGrid([
+      { label: 'Critical', value: String(counts.critical) },
+      { label: 'Warnings', value: String(counts.warning) },
+      { label: 'Reminders', value: String(counts.reminder) },
+      { label: 'Info', value: String(counts.info) }
+    ]));
+    container.appendChild(lead);
+
+    const actionsCard = Components.contextCard({
+      title: 'Actions',
+      iconName: 'check',
+      subtitle: 'Resolve the feed in batches when you just need a quick cleanup.',
+      tier: 'action'
+    });
+    const markBtn = document.createElement('button');
+    markBtn.id = 'nact-mark-all';
+    markBtn.className = 'btn btn-secondary';
+    markBtn.textContent = 'Mark All as Read';
+    markBtn.addEventListener('click', () => {
+      _notifications.forEach(n => NotificationEngine.markRead(n.id));
+      _loadNotificationsAndRender();
+      UIKit.toast('All alerts marked as read.', 'success');
+    });
+    actionsCard.querySelector('.context-card-body').appendChild(
+      Components.contextActionGroup([markBtn])
+    );
+    container.appendChild(actionsCard);
+
+    container.appendChild(Components.contextCard({
+      title: 'Integrity Engine',
+      iconName: 'cpu',
+      body: 'Notifications are compiled from duplicate serial checks, missing field audits, and end-of-useful-life monitoring.',
+      tier: 'status'
+    }));
+  }
+
   /* ----------------------------------------------------------
      Loader
      ---------------------------------------------------------- */

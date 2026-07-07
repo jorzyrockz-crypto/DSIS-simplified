@@ -846,6 +846,132 @@ const ViewerPage = (() => {
     _contextBody.appendChild(relatedBox);
   }
 
+  function _renderContextPanel() {
+    if (!_contextBody) return;
+    _contextBody.innerHTML = '';
+
+    const health = HealthAnalyzer.analyze(_record, _allRecords);
+    const related = RelationshipEngine.findRelated(_record, _allRecords);
+    const isArchived = _record.status === 'archived';
+
+    const summaryLead = Components.contextLead({
+      eyebrow: 'Record Details',
+      title: _record.icsNumber || 'Draft Record',
+      desc: `${_record.receivedBy || 'No recipient yet'}${_record.office ? ` · ${_record.office}` : ''}`,
+      iconName: 'records',
+      badge: _statusLabel(_record.status),
+      tier: 'hero'
+    });
+    summaryLead.appendChild(Components.contextKeyValueList([
+      { key: 'Status', value: _statusLabel(_record.status) },
+      { key: 'Items', value: String((_record.items || []).length) },
+      { key: 'Issued', value: _record.dateIssued ? Utils.formatDate(_record.dateIssued) : 'Not set', empty: !_record.dateIssued }
+    ]));
+    _contextBody.appendChild(summaryLead);
+
+    const statusCard = Components.contextCard({
+      title: 'Status Tracking',
+      iconName: 'check',
+      tier: 'supporting'
+    });
+    statusCard.querySelector('.context-card-body').innerHTML = `
+      <select class="sort-select" id="v-status-select" style="width:100%;height:38px;">
+        ${MonitoringService.RECORD_STATUSES.map(s => `<option value="${s.value}" ${s.value === _record.status ? 'selected' : ''}>${s.label}</option>`).join('')}
+      </select>
+    `;
+    statusCard.querySelector('#v-status-select').addEventListener('change', e => {
+      _handleRecordStatusChange(e.target.value);
+    });
+    _contextBody.appendChild(statusCard);
+
+    const healthCard = Components.contextCard({
+      title: 'Health Audit',
+      iconName: 'info',
+      subtitle: `${health.issues.length} issue(s) detected in this record.`,
+      tier: 'status'
+    });
+    const healthBody = healthCard.querySelector('.context-card-body');
+    healthBody.appendChild(Components.contextList([{
+      icon: Components.icon('check'),
+      title: health.label,
+      meta: 'Health score updates from schema completeness and data consistency checks.',
+      trailing: `<span class="context-pill">${health.score}</span>`
+    }], { compact: true }));
+    if (health.issues.length) {
+      healthBody.appendChild(Components.contextList(health.issues.slice(0, 3).map(issue => ({
+        icon: Components.icon(issue.severity === 'critical' || issue.severity === 'high' ? 'alert' : 'info'),
+        title: issue.message,
+        meta: Utils.capitalise(issue.severity || 'info')
+      })), { compact: true }));
+    }
+    _contextBody.appendChild(healthCard);
+
+    const actionsCard = Components.contextCard({
+      title: 'Quick Actions',
+      iconName: 'edit',
+      tier: 'action'
+    });
+    const editBtn = document.createElement('button');
+    editBtn.className = 'btn btn-primary btn-sm';
+    editBtn.innerHTML = `${Components.icon('records')}<span>Edit Slip Details</span>`;
+    editBtn.addEventListener('click', _handleEdit);
+
+    const printBtn = document.createElement('button');
+    printBtn.className = 'btn btn-secondary btn-sm';
+    printBtn.textContent = 'Print Official Slip';
+    printBtn.addEventListener('click', () => {
+      const container = document.createElement('div');
+      _renderFormPreviewTab(container);
+      PrintEngine.openPreview(container.innerHTML);
+    });
+
+    const verifyBtn = document.createElement('button');
+    verifyBtn.className = 'btn btn-secondary btn-sm';
+    verifyBtn.innerHTML = `${Components.icon('check')}<span>Mark as Verified</span>`;
+    verifyBtn.addEventListener('click', () => _handleRecordStatusChange('verified'));
+
+    const archiveBtn = document.createElement('button');
+    archiveBtn.className = 'btn btn-secondary btn-sm';
+    archiveBtn.textContent = isArchived ? 'Restore Active' : 'Archive Record';
+    archiveBtn.addEventListener('click', isArchived ? _handleRestore : _handleArchive);
+
+    const cancelBtn = document.createElement('button');
+    cancelBtn.className = 'btn btn-ghost btn-sm';
+    cancelBtn.textContent = 'Cancel Record';
+    cancelBtn.style.color = 'var(--color-danger)';
+    cancelBtn.addEventListener('click', () => _handleRecordStatusChange('cancelled'));
+
+    const deleteBtn = document.createElement('button');
+    deleteBtn.className = 'btn btn-ghost btn-sm';
+    deleteBtn.textContent = 'Delete Record';
+    deleteBtn.style.color = 'var(--color-danger)';
+    deleteBtn.addEventListener('click', _handleDelete);
+
+    actionsCard.querySelector('.context-card-body').appendChild(
+      Components.contextActionGroup([editBtn, printBtn, verifyBtn, archiveBtn, cancelBtn, deleteBtn])
+    );
+    _contextBody.appendChild(actionsCard);
+
+    const relatedCard = Components.contextCard({
+      title: `Related Slips (${related.length})`,
+      iconName: 'link',
+      subtitle: related.length ? 'Connected by recipient, office, or record relationships.' : 'No linked recipient or office slips found.',
+      tier: 'supporting'
+    });
+    const relatedBody = relatedCard.querySelector('.context-card-body');
+    if (related.length) {
+      relatedBody.appendChild(Components.contextList(related.slice(0, 4).map(rel => ({
+        clickable: true,
+        icon: Components.icon('records'),
+        title: rel.record.icsNumber || 'Draft',
+        meta: rel.reasons.join(', '),
+        trailing: `<span class="badge badge-${_statusVariant(rel.record.status)}" style="font-size:9px;padding:2px 6px;border-radius:999px;">${_statusLabel(rel.record.status)}</span>`,
+        onClick: () => Router.navigate(`#view?id=${rel.record.id}`)
+      })), { compact: true }));
+    }
+    _contextBody.appendChild(relatedCard);
+  }
+
   /* ----------------------------------------------------------
      Helpers
      ---------------------------------------------------------- */

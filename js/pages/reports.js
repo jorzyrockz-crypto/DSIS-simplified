@@ -69,6 +69,55 @@ const ReportsPage = (() => {
     }));
   }
 
+  function renderContext(container) {
+    container.innerHTML = '';
+    _contextBody = container;
+
+    const lead = Components.contextLead({
+      eyebrow: 'Report Shortcuts',
+      title: 'Share or export this view',
+      desc: 'Use the same quick actions across report types without changing the page layout.',
+      iconName: 'reports',
+      badge: 'Ready',
+      tier: 'hero'
+    });
+    container.appendChild(lead);
+
+    const actionsCard = Components.contextCard({
+      title: 'Quick Actions',
+      iconName: 'download',
+      tier: 'action'
+    });
+
+    const exportCsvBtn = document.createElement('button');
+    exportCsvBtn.className = 'btn btn-secondary';
+    exportCsvBtn.innerHTML = `CSV Export`;
+    exportCsvBtn.addEventListener('click', _handleExportCSV);
+
+    const exportXlsBtn = document.createElement('button');
+    exportXlsBtn.className = 'btn btn-secondary';
+    exportXlsBtn.innerHTML = `Excel Export`;
+    exportXlsBtn.addEventListener('click', _handleExportExcel);
+
+    const printBtn = document.createElement('button');
+    printBtn.className = 'btn btn-primary';
+    printBtn.innerHTML = `Print Preview`;
+    printBtn.addEventListener('click', _handlePrintPreview);
+
+    actionsCard.querySelector('.context-card-body').appendChild(
+      Components.contextActionGroup([exportCsvBtn, exportXlsBtn, printBtn])
+    );
+    container.appendChild(actionsCard);
+
+    const noteCard = Components.contextCard({
+      title: 'Reporting Guidelines',
+      iconName: 'info',
+      body: 'All reports are generated from the local database and exports stay encoded in UTF-8 for spreadsheet compatibility.',
+      tier: 'status'
+    });
+    container.appendChild(noteCard);
+  }
+
   /* ----------------------------------------------------------
      Loader & Filter sync
      ---------------------------------------------------------- */

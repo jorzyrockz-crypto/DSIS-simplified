@@ -212,6 +212,48 @@ const SettingsPage = (() => {
     if (contextBody) renderContext(contextBody);
   }
 
+  function renderContext(container) {
+    container.innerHTML = '';
+    _contextBody = container;
+
+    const versionItems = [
+      { label: 'App Version', value: APP_VERSION },
+      { label: 'Build Date', value: BUILD_DATE },
+      { label: 'PWA Engine', value: 'Service Worker Active' },
+      { label: 'Mode', value: _getDevModeState() ? 'Developer Mode Active' : 'Production Mode' }
+    ];
+
+    const lead = Components.contextLead({
+      eyebrow: 'Version Info',
+      title: 'System Diagnostics',
+      desc: 'Current release information and workspace runtime state.',
+      iconName: 'cpu',
+      badge: APP_VERSION,
+      tier: 'hero'
+    });
+    container.appendChild(lead);
+
+    const statusCard = Components.contextCard({
+      title: 'Runtime Snapshot',
+      iconName: 'info',
+      tier: 'supporting'
+    });
+    statusCard.querySelector('.context-card-body').appendChild(
+      Components.contextKeyValueList(versionItems.map(item => ({
+        key: item.label,
+        value: item.value
+      })))
+    );
+    container.appendChild(statusCard);
+
+    container.appendChild(Components.contextCard({
+      iconName: 'check',
+      title: 'Production Environment',
+      body: 'This tool compiles property custodian records offline. Backups are saved directly to your Downloads folder.',
+      tier: 'status'
+    }));
+  }
+
   function _syncActiveTabFromHash() {
     try {
       const rawHash = String(window.location.hash || '');

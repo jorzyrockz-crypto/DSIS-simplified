@@ -21,7 +21,7 @@ const RecordsPage = (() => {
     sortBy:          'modifiedDate',
     sortOrder:       'desc',
     activeView:      'records', // 'records' | 'items' | 'recipients'
-    displayMode:     localStorage.getItem('ics-display-mode') || 'list', // 'list' | 'grid'
+    displayMode:     'list', // 'list' | 'grid'
     selectedIds:     [], // for selection mode tracking
     selectedId:      null, // for inspector tracking (record.id, itemKey, or recipient.name)
     filters: {
@@ -39,6 +39,10 @@ const RecordsPage = (() => {
   /* DOM shortcuts */
   let _dom = {};
   let _contextBody = null;
+
+  function _getResponsiveDefaultDisplayMode() {
+    return window.matchMedia('(max-width: 767px)').matches ? 'grid' : 'list';
+  }
 
   /* Debounced search */
   const _doSearch = Utils.debounce(_runQuery, 280);
@@ -1698,6 +1702,607 @@ const RecordsPage = (() => {
     _updateContextPanel(null);
 
     // Fetch and render records
+    _loadAll();
+  }
+
+  function _buildRowMeta(parts = []) {
+    return parts.filter(Boolean).join(' · ');
+  }
+
+  function _buildUtilityMenu(actions) {
+    return `
+      <div class="rc-dots-menu" onclick="event.stopPropagation();">
+        <button class="btn btn-ghost btn-sm btn-icon rc-dots-trigger records-utility-btn" title="Record Actions">
+          ${Components.icon('moreH')}
+        </button>
+        <div class="dots-dropdown">
+          ${actions}
+        </div>
+      </div>
+    `;
+  }
+
+  function _buildListUtilityCard({ label, value, actionHtml = '', menuHtml = '' }) {
+    return `
+      <div class="records-row-utility-card">
+        <div class="records-row-utility-copy">
+          <span class="records-row-utility-label">${label}</span>
+          <span class="records-row-utility-value">${value}</span>
+        </div>
+        <span class="records-row-utility-divider" aria-hidden="true"></span>
+        <div class="records-row-utility-actions">
+          ${actionHtml}
+          ${menuHtml}
+        </div>
+      </div>
+    `;
+  }
+
+  function _filterByRecipient(name) {
+    _state.activeView = 'records';
+    _state.filters.recipient = name || '';
+    _state.page = 0;
+    _runQuery();
+  }
+
+  function _buildRecordCard(record) {
+    const card = document.createElement('div');
+    const isHighlighted = _state.selectedId === record.id;
+    const isSelected = _state.selectedIds.includes(record.id);
+    card.className = `record-card-p2 card status-${record.status} ${isHighlighted ? 'selected' : ''}`;
+    card.dataset.id = record.id;
+
+    const starHtml = record.isFavorite ? `<span class="records-favorite-mark">★</span>` : '';
+
+    const utilityMenu = _buildUtilityMenu(`
+      <button class="dots-item" data-action="duplicate">Duplicate</button>
+      <button class="dots-item" data-action="archive">Archive</button>
+      <button class="dots-item" data-action="delete" style="color:var(--color-danger)">Delete</button>
+    `);
+
+    card.innerHTML = _state.displayMode === 'grid'
+      ? `
+        <div class="records-grid-card-rail">
+          <div class="card-checkbox-wrapper" onclick="event.stopPropagation();">
+            <input type="checkbox" class="record-select-checkbox" data-id="${record.id}" ${isSelected ? 'checked' : ''}>
+          </div>
+          <div class="records-grid-card-rail-note">
+            ${record.isFavorite ? '<span class="records-grid-chip records-grid-chip--favorite">Starred</span>' : '<span class="records-grid-chip">Slip</span>'}
+          </div>
+        </div>
+        <div class="records-grid-card-body">
+          <div class="records-grid-card-identity">
+            <div class="rc-avatar records-row-avatar records-row-avatar--record">
+              ${Utils.initials(record.receivedBy)}
+            </div>
+            <div class="records-grid-card-copy">
+              <div class="records-grid-card-title-row">
+                <div class="records-row-title">
+                  ${Utils.escapeHtml(record.icsNumber) || '(Draft)'}
+                  ${starHtml}
+                </div>
+                <span class="badge badge-${_statusVariant(record.status)} records-row-badge">${_statusLabel(record.status)}</span>
+              </div>
+              <div class="records-grid-card-primary">${Utils.escapeHtml(record.receivedBy) || 'No recipient name'}</div>
+            </div>
+          </div>
+          <div class="records-grid-card-meta">
+            <div class="records-grid-card-line">${Utils.escapeHtml(record.office || 'No office specified')}</div>
+            <div class="records-grid-card-line records-grid-card-line--muted">${_buildRowMeta([
+              `${record.totalItems} item${record.totalItems !== 1 ? 's' : ''}`,
+              Utils.formatCurrency(record.totalCost)
+            ])}</div>
+          </div>
+          <div class="records-grid-card-actions">
+            <button class="btn btn-secondary btn-sm records-inline-action records-inline-action--grid" data-quick-action="view-record">View</button>
+            <button class="btn btn-secondary btn-sm records-inline-action records-inline-action--grid" data-quick-action="edit-record">Edit</button>
+            <button class="btn btn-secondary btn-sm records-inline-action records-inline-action--grid" data-quick-action="print-record">Print</button>
+          </div>
+        </div>
+        <div class="records-grid-card-footer">
+          <span class="records-grid-card-time">Modified ${Utils.formatRelativeTime(record.modifiedDate)}</span>
+          <div class="records-grid-card-footer-actions">
+            ${utilityMenu}
+          </div>
+        </div>
+      `
+      : `
+        <div class="records-row-left">
+          <div class="card-checkbox-wrapper" onclick="event.stopPropagation();">
+            <input type="checkbox" class="record-select-checkbox" data-id="${record.id}" ${isSelected ? 'checked' : ''}>
+          </div>
+          <div class="rc-avatar records-row-avatar records-row-avatar--record">
+            ${Utils.initials(record.receivedBy)}
+          </div>
+        </div>
+        <div class="records-row-main">
+          <div class="records-row-copy">
+            <div class="records-row-primary">
+              <div class="records-row-title">
+                ${Utils.escapeHtml(record.icsNumber) || '(Draft)'}
+                ${starHtml}
+              </div>
+              <span class="badge badge-${_statusVariant(record.status)} records-row-badge">${_statusLabel(record.status)}</span>
+            </div>
+            <div class="records-row-secondary">${Utils.escapeHtml(record.receivedBy) || 'No recipient name'}</div>
+            <div class="records-row-tertiary">${_buildRowMeta([
+              Utils.escapeHtml(record.office || 'No office specified'),
+              `${record.totalItems} item${record.totalItems !== 1 ? 's' : ''}`,
+              Utils.formatCurrency(record.totalCost)
+            ])}</div>
+            <div class="records-row-actions">
+              <button class="btn btn-secondary btn-sm records-inline-action records-inline-action--embedded" data-quick-action="view-record">View</button>
+              <button class="btn btn-secondary btn-sm records-inline-action records-inline-action--embedded" data-quick-action="edit-record">Edit</button>
+              <button class="btn btn-secondary btn-sm records-inline-action records-inline-action--embedded" data-quick-action="print-record">Print</button>
+            </div>
+          </div>
+        </div>
+        ${_buildListUtilityCard({
+          label: 'Modified',
+          value: Utils.formatRelativeTime(record.modifiedDate),
+          menuHtml: utilityMenu
+        })}
+      `;
+
+    card.addEventListener('click', (e) => {
+      if (e.target.closest('.rc-dots-menu') || e.target.closest('.card-checkbox-wrapper') || e.target.closest('[data-quick-action]')) return;
+      _state.selectedId = record.id;
+      document.querySelectorAll('.record-card-p2').forEach(c => {
+        c.classList.toggle('selected', c.dataset.id === record.id);
+      });
+      _updateContextPanel(record);
+      if (window.App && typeof window.App.expandContextPanel === 'function') {
+        window.App.expandContextPanel();
+      }
+      if (window.innerWidth <= 1024 && window.App && typeof window.App.openContextDrawer === 'function') {
+        window.App.openContextDrawer();
+        const drawerBody = document.getElementById('context-drawer-body');
+        if (drawerBody) _bindRecordInspectorEvents(drawerBody, record);
+      }
+    });
+
+    card.querySelector('.record-select-checkbox').addEventListener('change', (e) => {
+      _toggleSelection(record.id, e.target.checked);
+    });
+
+    card.querySelector('[data-quick-action="view-record"]')?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      Router.navigate(`#view?id=${record.id}`);
+    });
+    card.querySelector('[data-quick-action="edit-record"]')?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      AppState.editRecordId = record.id;
+      Router.navigate('#edit');
+    });
+    card.querySelector('[data-quick-action="print-record"]')?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      PrintEngine.printRecords([record]);
+    });
+
+    const trigger = card.querySelector('.rc-dots-trigger');
+    const dropdown = card.querySelector('.dots-dropdown');
+    trigger.addEventListener('click', (e) => {
+      e.stopPropagation();
+      document.querySelectorAll('.dots-dropdown').forEach(d => {
+        if (d !== dropdown) d.classList.remove('active');
+      });
+      dropdown.classList.toggle('active');
+    });
+
+    dropdown.querySelectorAll('.dots-item').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        dropdown.classList.remove('active');
+        const act = btn.getAttribute('data-action');
+        if (act === 'duplicate') _handleDuplicate(record.id);
+        else if (act === 'archive') _handleArchiveSingle(record.id);
+        else if (act === 'delete') _handleDeleteSingle(record.id);
+      });
+    });
+
+    document.addEventListener('click', () => {
+      dropdown.classList.remove('active');
+    });
+
+    return card;
+  }
+
+  function _buildItemCard(item, record) {
+    const card = document.createElement('div');
+    const itemKey = record.id + '_' + (item.inventoryItemNumber || item.description);
+    const isHighlighted = _state.selectedId === itemKey;
+    card.className = `record-card-p2 card ${isHighlighted ? 'selected' : ''}`;
+    card.dataset.id = itemKey;
+
+    card.innerHTML = _state.displayMode === 'grid'
+      ? `
+        <div class="records-grid-card-rail">
+          <div class="records-grid-card-rail-note">
+            <span class="records-grid-chip records-grid-chip--item">Item</span>
+          </div>
+        </div>
+        <div class="records-grid-card-body">
+          <div class="records-grid-card-identity">
+            <div class="rc-avatar records-row-avatar records-row-avatar--item">${item.unit || 'pc'}</div>
+            <div class="records-grid-card-copy">
+              <div class="records-grid-card-title-row">
+                <div class="records-row-title">${Utils.escapeHtml(item.description) || 'Unnamed Item'}</div>
+              </div>
+              <div class="records-grid-card-primary">${_buildRowMeta([
+                `Qty ${item.quantity}`,
+                `Unit ${Utils.formatCurrency(item.unitCost)}`
+              ])}</div>
+            </div>
+          </div>
+          <div class="records-grid-card-meta">
+            <div class="records-grid-card-line">${`Total ${Utils.formatCurrency(item.totalCost)}`}</div>
+            <div class="records-grid-card-line records-grid-card-line--muted">${_buildRowMeta([
+              `Serial ${Utils.escapeHtml(item.serialNumber || 'N/A')}`,
+              `Inv ${Utils.escapeHtml(item.inventoryItemNumber || 'N/A')}`
+            ])}</div>
+          </div>
+        </div>
+        <div class="records-grid-card-footer">
+          <span class="records-grid-card-time">Issued ${Utils.formatDate(record.dateIssued)}</span>
+          <div class="records-grid-card-footer-actions">
+            <span class="badge badge-info records-row-badge">${Utils.escapeHtml(record.icsNumber)}</span>
+          </div>
+        </div>
+      `
+      : `
+        <div class="records-row-left">
+          <div class="rc-avatar records-row-avatar records-row-avatar--item">${item.unit || 'pc'}</div>
+        </div>
+        <div class="records-row-main">
+          <div class="records-row-copy">
+            <div class="records-row-primary">
+              <div class="records-row-title">${Utils.escapeHtml(item.description) || 'Unnamed Item'}</div>
+              <span class="badge badge-info records-row-badge">${Utils.escapeHtml(record.icsNumber)}</span>
+            </div>
+            <div class="records-row-secondary">${_buildRowMeta([
+              `Qty ${item.quantity}`,
+              `Unit ${Utils.formatCurrency(item.unitCost)}`,
+              `Total ${Utils.formatCurrency(item.totalCost)}`
+            ])}</div>
+            <div class="records-row-tertiary">${_buildRowMeta([
+              `Serial ${Utils.escapeHtml(item.serialNumber || 'N/A')}`,
+              `Inv ${Utils.escapeHtml(item.inventoryItemNumber || 'N/A')}`
+            ])}</div>
+          </div>
+        </div>
+        ${_buildListUtilityCard({
+          label: 'Issued',
+          value: Utils.formatDate(record.dateIssued),
+          actionHtml: `
+            <span class="badge badge-info records-row-badge records-row-utility-badge">${Utils.escapeHtml(record.icsNumber)}</span>
+            <button class="btn btn-secondary btn-sm records-inline-action" data-quick-action="view-item-record">View Slip</button>
+          `
+        })}
+      `;
+
+    card.addEventListener('click', (e) => {
+      if (e.target.closest('[data-quick-action]')) return;
+      _state.selectedId = itemKey;
+      document.querySelectorAll('.record-card-p2').forEach(c => {
+        c.classList.toggle('selected', c.dataset.id === itemKey);
+      });
+      _updateContextPanel({ item, record });
+      if (window.App && typeof window.App.expandContextPanel === 'function') {
+        window.App.expandContextPanel();
+      }
+      if (window.innerWidth <= 1024 && window.App && typeof window.App.openContextDrawer === 'function') {
+        window.App.openContextDrawer();
+        const drawerBody = document.getElementById('context-drawer-body');
+        if (drawerBody) _bindItemInspectorEvents(drawerBody, { item, record });
+      }
+    });
+
+    card.querySelector('[data-quick-action="view-item-record"]')?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      Router.navigate(`#view?id=${record.id}`);
+    });
+
+    return card;
+  }
+
+  function _buildRecipientCard(rec) {
+    const card = document.createElement('div');
+    const isHighlighted = _state.selectedId === rec.name;
+    card.className = `record-card-p2 card ${isHighlighted ? 'selected' : ''}`;
+    card.dataset.id = rec.name;
+
+    card.innerHTML = _state.displayMode === 'grid'
+      ? `
+        <div class="records-grid-card-rail">
+          <div class="records-grid-card-rail-note">
+            <span class="records-grid-chip records-grid-chip--recipient">Recipient</span>
+          </div>
+        </div>
+        <div class="records-grid-card-body">
+          <div class="records-grid-card-identity">
+            <div class="rc-avatar records-row-avatar records-row-avatar--recipient">${Utils.initials(rec.name)}</div>
+            <div class="records-grid-card-copy">
+              <div class="records-grid-card-title-row">
+                <div class="records-row-title">${Utils.escapeHtml(rec.name)}</div>
+              </div>
+              <div class="records-grid-card-primary">${_buildRowMeta([
+                Utils.escapeHtml(rec.position || 'No Position'),
+                Utils.escapeHtml(rec.office || 'No Office')
+              ])}</div>
+            </div>
+          </div>
+          <div class="records-grid-card-meta">
+            <div class="records-grid-card-line">${`${rec.slipsCount} slip${rec.slipsCount !== 1 ? 's' : ''}`}</div>
+            <div class="records-grid-card-line records-grid-card-line--muted">${`Value ${Utils.formatCurrency(rec.totalValue)}`}</div>
+          </div>
+        </div>
+        <div class="records-grid-card-footer">
+          <span class="records-grid-card-time">Last issued ${Utils.formatDate(rec.lastDate)}</span>
+          <div class="records-grid-card-footer-actions">
+            <button class="btn btn-secondary btn-sm records-inline-action" id="btn-view-recip-slips">View Slips</button>
+          </div>
+        </div>
+      `
+      : `
+        <div class="records-row-left">
+          <div class="rc-avatar records-row-avatar records-row-avatar--recipient">${Utils.initials(rec.name)}</div>
+        </div>
+        <div class="records-row-main">
+          <div class="records-row-copy">
+            <div class="records-row-primary">
+              <div class="records-row-title">${Utils.escapeHtml(rec.name)}</div>
+            </div>
+            <div class="records-row-secondary">${_buildRowMeta([
+              Utils.escapeHtml(rec.position || 'No Position'),
+              Utils.escapeHtml(rec.office || 'No Office')
+            ])}</div>
+            <div class="records-row-tertiary">${_buildRowMeta([
+              `${rec.slipsCount} slip${rec.slipsCount !== 1 ? 's' : ''}`,
+              `Value ${Utils.formatCurrency(rec.totalValue)}`
+            ])}</div>
+          </div>
+        </div>
+        ${_buildListUtilityCard({
+          label: 'Last Issued',
+          value: Utils.formatDate(rec.lastDate),
+          actionHtml: '<button class="btn btn-secondary btn-sm records-inline-action" id="btn-view-recip-slips">View Slips</button>'
+        })}
+      `;
+
+    card.addEventListener('click', (e) => {
+      if (e.target.closest('#btn-view-recip-slips')) return;
+      _state.selectedId = rec.name;
+      document.querySelectorAll('.record-card-p2').forEach(c => {
+        c.classList.toggle('selected', c.dataset.id === rec.name);
+      });
+      _updateContextPanel(rec);
+      if (window.App && typeof window.App.expandContextPanel === 'function') {
+        window.App.expandContextPanel();
+      }
+      if (window.innerWidth <= 1024 && window.App && typeof window.App.openContextDrawer === 'function') {
+        window.App.openContextDrawer();
+        const drawerBody = document.getElementById('context-drawer-body');
+        if (drawerBody) _bindRecipientInspectorEvents(drawerBody, rec);
+      }
+    });
+
+    card.querySelector('#btn-view-recip-slips')?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      _filterByRecipient(rec.name);
+    });
+
+    return card;
+  }
+
+  function render(workspace, contextBody) {
+    workspace.innerHTML = '';
+    _contextBody = contextBody;
+    _state.selectedIds = [];
+    _state.displayMode = _getResponsiveDefaultDisplayMode();
+
+    if (AppState.preappliedFilters) {
+      _state.filters = { ..._state.filters, ...AppState.preappliedFilters };
+      AppState.preappliedFilters = null;
+    }
+
+    const globalSearch = document.getElementById('global-search');
+    if (globalSearch) {
+      globalSearch.value = _state.query || '';
+      globalSearch.addEventListener('input', _handleGlobalSearchInput);
+    }
+
+    const masthead = document.createElement('section');
+    masthead.className = 'records-masthead';
+    masthead.innerHTML = `
+      <div class="records-masthead-top">
+        <div class="records-masthead-copy">
+          <h1 class="page-title">ICS Records</h1>
+          <p class="page-subtitle">Browse and manage Inventory Custodian Slips.</p>
+        </div>
+        <button class="btn btn-primary records-new-btn" id="records-new-btn">+ New ICS</button>
+      </div>
+      <div class="records-masthead-controls">
+        <div class="view-switcher-segmented records-tabs" id="records-view-switcher"></div>
+        <div class="records-toolbar" id="records-toolbar"></div>
+      </div>
+    `;
+    workspace.appendChild(masthead);
+
+    const toolbar = masthead.querySelector('#records-toolbar');
+    const filtersContainer = document.createElement('div');
+    filtersContainer.className = 'records-toolbar-main';
+
+    const sortSelect = document.createElement('select');
+    sortSelect.className = 'form-control records-toolbar-select';
+    sortSelect.id = 'org-sort-select';
+    [
+      { label: 'Recently modified', val: 'modifiedDate:desc' },
+      { label: 'Oldest modified', val: 'modifiedDate:asc' },
+      { label: 'Newest issued', val: 'dateIssued:desc' },
+      { label: 'Oldest issued', val: 'dateIssued:asc' },
+      { label: 'ICS number A-Z', val: 'icsNumber:asc' },
+    ].forEach(({ label, val }) => {
+      const opt = document.createElement('option');
+      opt.value = val;
+      opt.textContent = label;
+      if (val === `${_state.sortBy}:${_state.sortOrder}`) opt.selected = true;
+      sortSelect.appendChild(opt);
+    });
+    sortSelect.addEventListener('change', (e) => {
+      const [sortBy, sortOrder] = e.target.value.split(':');
+      _state.sortBy = sortBy;
+      _state.sortOrder = sortOrder || 'desc';
+      _state.page = 0;
+      _runQuery();
+    });
+    filtersContainer.appendChild(sortSelect);
+
+    const activeFilterCount = Object.entries(_state.filters).reduce((count, [key, val]) => {
+      if (key === 'status' && val === 'all') return count;
+      if (val === null || val === undefined || val === '' || val === false) return count;
+      return count + 1;
+    }, 0);
+
+    const filterBtn = document.createElement('button');
+    filterBtn.className = 'btn btn-secondary records-toolbar-btn';
+    filterBtn.id = 'org-filter-btn';
+    filterBtn.innerHTML = `${Components.icon('filter')}<span>Filter</span>${activeFilterCount > 0 ? `<span class="filter-count-badge">${activeFilterCount}</span>` : ''}`;
+    filterBtn.addEventListener('click', () => _toggleFiltersDrawer(true));
+    filtersContainer.appendChild(filterBtn);
+    toolbar.appendChild(filtersContainer);
+
+    const viewBtnsContainer = document.createElement('div');
+    viewBtnsContainer.className = 'records-display-toggle';
+
+    const listBtn = document.createElement('button');
+    listBtn.className = `btn btn-ghost btn-sm records-display-btn ${_state.displayMode === 'list' ? 'btn-primary active' : ''}`;
+    listBtn.innerHTML = `${Components.icon('list')}<span>List</span>`;
+
+    const gridBtn = document.createElement('button');
+    gridBtn.className = `btn btn-ghost btn-sm records-display-btn ${_state.displayMode === 'grid' ? 'btn-primary active' : ''}`;
+    gridBtn.innerHTML = `${Components.icon('grid')}<span>Grid</span>`;
+
+    listBtn.addEventListener('click', () => {
+      _state.displayMode = 'list';
+      listBtn.classList.add('btn-primary', 'active');
+      gridBtn.classList.remove('btn-primary', 'active');
+      _renderList();
+    });
+    gridBtn.addEventListener('click', () => {
+      _state.displayMode = 'grid';
+      gridBtn.classList.add('btn-primary', 'active');
+      listBtn.classList.remove('btn-primary', 'active');
+      _renderList();
+    });
+
+    viewBtnsContainer.appendChild(listBtn);
+    viewBtnsContainer.appendChild(gridBtn);
+    toolbar.appendChild(viewBtnsContainer);
+
+    const row4 = document.createElement('div');
+    row4.className = 'records-content';
+
+    const listWrap = document.createElement('div');
+    listWrap.id = 'records-list-wrap';
+    row4.appendChild(listWrap);
+    _dom.listWrap = listWrap;
+
+    const pagination = document.createElement('div');
+    pagination.className = 'pagination';
+    pagination.style.marginTop = '20px';
+    row4.appendChild(pagination);
+    _dom.pagination = pagination;
+
+    workspace.appendChild(row4);
+
+    let backdrop = document.getElementById('drawer-backdrop');
+    if (!backdrop) {
+      backdrop = document.createElement('div');
+      backdrop.className = 'drawer-backdrop';
+      backdrop.id = 'drawer-backdrop';
+      document.body.appendChild(backdrop);
+    }
+
+    let drawer = document.getElementById('adv-filter-drawer');
+    if (!drawer) {
+      drawer = document.createElement('div');
+      drawer.className = 'adv-filter-drawer';
+      drawer.id = 'adv-filter-drawer';
+      document.body.appendChild(drawer);
+    }
+
+    drawer.innerHTML = `
+      <div class="adv-drawer-header">
+        <span class="adv-drawer-title">Filters</span>
+        <button class="btn btn-ghost btn-sm" id="btn-close-adv" style="width:24px;height:24px;border-radius:50%;padding:0">×</button>
+      </div>
+      <div class="adv-drawer-body">
+        <div class="form-group"><label class="form-label">Status</label>
+          <select class="form-control" id="adv-status">
+            <option value="all">All statuses</option>
+            <option value="active">Active</option>
+            <option value="draft">Draft</option>
+            <option value="archived">Archived</option>
+            <option value="verified">Verified</option>
+          </select>
+        </div>
+        <div class="form-group"><label class="form-label">Year Issued</label><select class="form-control" id="adv-year"><option value="">All Years</option></select></div>
+        <div class="form-group"><label class="form-label">Fund Cluster</label><select class="form-control" id="adv-fund"><option value="">All Funds</option></select></div>
+        <div class="form-group"><label class="form-label">ICS Number</label><input class="form-control" id="adv-ics" type="text" placeholder="e.g. 2026-07-001"></div>
+        <div class="form-group"><label class="form-label">Recipient Name</label><input class="form-control" id="adv-recip" type="text"></div>
+        <div class="form-group"><label class="form-label">Office</label><input class="form-control" id="adv-office" type="text"></div>
+        <div class="form-group"><label class="form-label">Position</label><input class="form-control" id="adv-pos" type="text"></div>
+        <div class="form-group"><label class="form-label">Item Description</label><input class="form-control" id="adv-desc" type="text"></div>
+        <div class="form-group"><label class="form-label">Inventory Item No.</label><input class="form-control" id="adv-invNum" type="text"></div>
+        <div class="form-group"><label class="form-label">Serial Number</label><input class="form-control" id="adv-serial" type="text"></div>
+        <div class="form-group"><label class="form-label">Estimated Useful Life</label><input class="form-control" id="adv-eul" type="text"></div>
+        <div class="form-group"><label class="form-label">Min Asset Value (PHP)</label><input class="form-control" id="adv-amountMin" type="number"></div>
+        <div class="form-group"><label class="form-label">Max Asset Value (PHP)</label><input class="form-control" id="adv-amountMax" type="number"></div>
+        <div class="form-group"><label class="form-label">Date Start</label><input class="form-control" id="adv-dateStart" type="date"></div>
+        <div class="form-group"><label class="form-label">Date End</label><input class="form-control" id="adv-dateEnd" type="date"></div>
+        <div class="form-group"><label class="form-label">Tags</label><input class="form-control" id="adv-tags" type="text"></div>
+        <div class="form-group"><label class="form-label">Remarks</label><input class="form-control" id="adv-remarks" type="text"></div>
+        <div style="display:flex;flex-direction:column;gap:4px;margin-top:8px">
+          <label style="display:flex;align-items:center;gap:6px;font-size:var(--font-size-sm)"><input type="checkbox" id="adv-favs"> Pin Favorites</label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:var(--font-size-sm);margin-top:4px"><input type="checkbox" id="adv-attention"> Requires Audit</label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:var(--font-size-sm);margin-top:4px"><input type="checkbox" id="adv-recents"> Recently Viewed</label>
+        </div>
+      </div>
+      <div class="adv-drawer-footer">
+        <button class="btn btn-primary" id="btn-apply-adv" style="width:100%">Apply Filters</button>
+        <button class="btn btn-ghost" id="btn-clear-adv" style="width:100%">Clear All Filters</button>
+      </div>
+    `;
+
+    backdrop.addEventListener('click', () => _toggleFiltersDrawer(false));
+    drawer.querySelector('#btn-close-adv').addEventListener('click', () => _toggleFiltersDrawer(false));
+    drawer.querySelector('#btn-apply-adv').addEventListener('click', _applyAdvancedFilters);
+    drawer.querySelector('#btn-clear-adv').addEventListener('click', _clearAdvancedFilters);
+
+    let selToolbar = document.getElementById('notif-selection-toolbar');
+    if (!selToolbar) {
+      selToolbar = document.createElement('div');
+      selToolbar.className = 'selection-toolbar';
+      selToolbar.id = 'notif-selection-toolbar';
+      selToolbar.innerHTML = `
+        <span id="sel-count-label">0 selected</span>
+        <div style="display:flex;gap:4px">
+          <button class="sel-action-btn" id="bulk-archive-btn">Archive</button>
+          <button class="sel-action-btn" id="bulk-print-btn">Print</button>
+          <button class="sel-action-btn" id="bulk-export-btn">Export</button>
+          <button class="sel-action-btn" id="bulk-delete-btn" style="color:#F87171">Delete</button>
+        </div>
+      `;
+      document.body.appendChild(selToolbar);
+      selToolbar.querySelector('#bulk-archive-btn').addEventListener('click', _handleBulkArchive);
+      selToolbar.querySelector('#bulk-delete-btn').addEventListener('click', _handleBulkDelete);
+      selToolbar.querySelector('#bulk-export-btn').addEventListener('click', _handleBulkExport);
+      selToolbar.querySelector('#bulk-print-btn').addEventListener('click', _handleBulkPrint);
+    }
+
+    document.getElementById('records-new-btn').addEventListener('click', () => Router.navigate('#new'));
+    _setupKeyboard();
+    _updateContextPanel(null);
     _loadAll();
   }
 

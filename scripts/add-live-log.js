@@ -1,11 +1,12 @@
 'use strict';
 
-const fs = require('fs');
-const path = require('path');
-const vm = require('vm');
-
-const repoRoot = path.resolve(__dirname, '..');
-const liveLogPath = path.join(repoRoot, 'js', 'data', 'live-change-log.js');
+const {
+  appendLiveLogItems,
+  formatDateLabel,
+  readLiveLog,
+  withFileLock,
+  writeLiveLog
+} = require('./lib/changelog-io');
 
 function parseArgs(argv) {
   const args = {
@@ -13,7 +14,8 @@ function parseArgs(argv) {
     text: '',
     version: 'In Progress',
     dateLabel: null,
-    buildDate: null
+    buildDate: null,
+    items: []
   };
 
   for (let i = 0; i < argv.length; i += 1) {
@@ -43,73 +45,78 @@ function parseArgs(argv) {
       args.buildDate = argv[++i];
       continue;
     }
+
+    if (arg === '--item' && argv[i + 1]) {
+      args.items.push(argv[++i]);
+      continue;
+    }
   }
 
-  if (!args.text.trim()) {
-    throw new Error('Missing required --text "Change description"');
+  if (!args.items.length && !args.text.trim()) {
+    throw new Error('Missing changelog entry. Use --text "Change description" or one or more --item "Type: Change description" arguments.');
   }
 
   return args;
 }
 
-function loadLiveLogData(fileText) {
-  const match = fileText.match(/window\.LIVE_CHANGE_LOG_DATA\s*=\s*(\[[\s\S]*\]);/);
-  if (!match) {
-    throw new Error('Could not find LIVE_CHANGE_LOG_DATA array in live-change-log.js');
+function parseItems(args) {
+  const items = [];
+
+  if (args.text.trim()) {
+    items.push({
+      type: args.type,
+      text: args.text.trim()
+    });
   }
 
-  return vm.runInNewContext(match[1], {});
-}
+  args.items.forEach(rawItem => {
+    const trimmed = rawItem.trim();
+    if (!trimmed) return;
 
-function formatDateLabel(date) {
-  return date.toLocaleDateString('en-US', {
-    month: 'long',
-    day: 'numeric',
-    year: 'numeric'
+    const separatorIndex = trimmed.indexOf(':');
+    if (separatorIndex === -1) {
+      items.push({ type: args.type, text: trimmed });
+      return;
+    }
+
+    const type = trimmed.slice(0, separatorIndex).trim() || args.type;
+    const text = trimmed.slice(separatorIndex + 1).trim();
+    if (!text) {
+      throw new Error(`Invalid --item value "${rawItem}". Use "Type: Description".`);
+    }
+
+    items.push({ type, text });
   });
+
+  if (!items.length) {
+    throw new Error('No valid changelog items were parsed.');
+  }
+
+  return items;
 }
 
-function buildOutput(data) {
-  return `'use strict';\n\n/*\n  Live change log for in-progress workspace edits.\n  Append new entries here during active development sessions so the\n  Settings > Update Logs page can surface recent fixes immediately,\n  without waiting for a formal version release.\n\n  Helper command:\n  node scripts/add-live-log.js --type "Fix" --text "Describe the change"\n*/\nwindow.LIVE_CHANGE_LOG_DATA = ${JSON.stringify(data, null, 2)};\n`;
-}
-
-function main() {
+async function main() {
   const args = parseArgs(process.argv.slice(2));
   const now = new Date();
   const buildDate = args.buildDate || now.toISOString().slice(0, 10);
   const dateLabel = args.dateLabel || formatDateLabel(now);
+  const items = parseItems(args);
 
-  const fileText = fs.readFileSync(liveLogPath, 'utf8');
-  const data = loadLiveLogData(fileText);
-
-  const liveEntry = data.find(entry =>
-    entry &&
-    entry.live === true &&
-    entry.version === args.version &&
-    entry.buildDate === buildDate
-  );
-
-  const newItem = {
-    type: args.type,
-    text: args.text.trim()
-  };
-
-  if (liveEntry) {
-    liveEntry.items.unshift(newItem);
-    liveEntry.dateLabel = dateLabel;
-  } else {
-    data.unshift({
+  await withFileLock('live-change-log', async () => {
+    const data = readLiveLog();
+    appendLiveLogItems(data, {
       version: args.version,
       buildDate,
       dateLabel,
-      current: false,
-      live: true,
-      items: [newItem]
+      items
     });
-  }
+    writeLiveLog(data);
+  });
 
-  fs.writeFileSync(liveLogPath, buildOutput(data), 'utf8');
-  console.log(`Added live changelog entry: [${args.type}] ${args.text.trim()}`);
+  console.log(`Added ${items.length} live changelog entr${items.length === 1 ? 'y' : 'ies'}.`);
 }
 
-main();
+main().catch(error => {
+  console.error(error.message);
+  process.exit(1);
+});
