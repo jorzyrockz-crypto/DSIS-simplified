@@ -661,11 +661,12 @@ function bootstrap() {
     if (s.bgTheme && window.applyAppTheme) {
       window.applyAppTheme(s.bgTheme);
     }
-    // Restore card/panel background tint opacity with theme-aware colors
+    // Restore shared workspace surface opacity for shell and center panels
     const savedOpacity = s.bgOpacity || '75';
     const activeThemeMode = s.theme || 'light';
-    const rgb = activeThemeMode === 'dark' ? '31, 31, 32' : '255, 255, 255';
-    document.documentElement.style.setProperty('--workspace-glass-bg', `rgba(${rgb}, ${savedOpacity / 100})`);
+    if (window.applyWorkspaceSurfaceOpacity) {
+      window.applyWorkspaceSurfaceOpacity(savedOpacity, activeThemeMode);
+    }
 
     // Restore glass section toggles on launch
     if (window.updateWorkspaceGlassToggles) {

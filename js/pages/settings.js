@@ -429,10 +429,17 @@ const SettingsPage = (() => {
             <label class="form-label" style="margin:0">Theme Mode</label>
             ${themeIsLocked ? '<span style="font-size:11px;color:var(--color-warning);font-weight:600;display:flex;align-items:center;gap:4px">🔒 Locked (Material)</span>' : ''}
           </div>
-          <select class="sort-select" id="set-theme-select" style="width:100%;height:38px;"${themeIsLocked ? ' disabled' : ''}>
-            <option value="light" ${s.theme === 'light' ? 'selected' : ''}>Light Theme</option>
-            <option value="dark" ${s.theme === 'dark' ? 'selected' : ''}>Dark Theme</option>
-          </select>
+          <input type="hidden" id="set-theme-select" value="${s.theme === 'dark' ? 'dark' : 'light'}">
+          <div class="theme-mode-picker${themeIsLocked ? ' is-disabled' : ''}" role="radiogroup" aria-label="Theme Mode">
+            <button type="button" class="theme-mode-thumb${s.theme !== 'dark' ? ' active' : ''}" data-mode-id="light"${themeIsLocked ? ' disabled aria-disabled="true"' : ''}>
+              <span class="theme-mode-preview theme-mode-preview-light"></span>
+              <span class="theme-mode-label">Light Theme</span>
+            </button>
+            <button type="button" class="theme-mode-thumb${s.theme === 'dark' ? ' active' : ''}" data-mode-id="dark"${themeIsLocked ? ' disabled aria-disabled="true"' : ''}>
+              <span class="theme-mode-preview theme-mode-preview-dark"></span>
+              <span class="theme-mode-label">Dark Theme</span>
+            </button>
+          </div>
           ${themeIsLocked ? '<p style="font-size:12px;color:var(--color-text-secondary);margin-top:6px">Theme selection is locked while Material Design is enabled.</p>' : ''}
         </div>
 
@@ -445,10 +452,9 @@ const SettingsPage = (() => {
                 ? `background-image: url(${t.val}); background-size: cover; background-position: center;` 
                 : `background: ${t.val};`;
               const isSelected = (s.bgTheme || 'default') === t.id;
-              const borderStyle = isSelected ? 'border: 2px solid var(--color-primary);' : 'border: 2px solid transparent;';
               return `
-                <div class="theme-thumb" data-theme-id="${t.id}" style="cursor:pointer; text-align:center;">
-                  <div id="theme-preview-${t.id}" style="${previewStyle} ${borderStyle} width:100%; height:64px; border-radius:10px; transition:all 0.2s; box-shadow: var(--shadow-sm);"></div>
+                <div class="theme-thumb${isSelected ? ' active' : ''}" data-theme-id="${t.id}" style="cursor:pointer; text-align:center;">
+                  <div id="theme-preview-${t.id}" style="${previewStyle} border: 2px solid transparent; width:100%; height:64px; border-radius:10px; transition:all 0.2s; box-shadow: var(--shadow-sm);"></div>
                   <span style="font-size:11px; color:var(--color-text-secondary); margin-top:6px; display:block; font-weight: 500;">${t.name}</span>
                 </div>
               `;
@@ -462,8 +468,8 @@ const SettingsPage = (() => {
               <label style="font-size:13px; font-weight:700; color:var(--color-text-primary);">Background Tint Opacity</label>
               <span id="opacity-val-label" style="font-size:12px; font-weight:600; color:var(--color-primary);">75%</span>
           </div>
-          <input type="range" id="bg-opacity-slider" min="10" max="100" value="75" style="width:100%; height:6px; border-radius:5px; background:var(--color-border); outline:none; -webkit-appearance:none; cursor:pointer;">
-          <p style="font-size:11px; color:var(--color-text-tertiary); margin-top:8px;">Adjust how much the background image shines through your workspace cards and panels.</p>
+          <input type="range" id="bg-opacity-slider" min="40" max="100" value="75" style="width:100%; height:6px; border-radius:5px; background:var(--color-border); outline:none; -webkit-appearance:none; cursor:pointer;">
+          <p id="opacity-guidance-text" style="font-size:11px; color:var(--color-text-tertiary); margin-top:8px;">Adjust how much the background image shines through your workspace cards and panels. Recommended minimum: 50%.</p>
         </div>
 
         <!-- Theme Application Toggles -->
@@ -492,6 +498,42 @@ const SettingsPage = (() => {
     // Material theme toggle handler
     const matToggle = container.querySelector('#set-material-toggle');
     const themeSelect = container.querySelector('#set-theme-select');
+    const modeThumbs = Array.from(container.querySelectorAll('.theme-mode-thumb'));
+
+    const syncModeThumbs = (modeValue) => {
+      modeThumbs.forEach(thumb => {
+        const isActive = thumb.getAttribute('data-mode-id') === modeValue;
+        thumb.classList.toggle('active', isActive);
+        thumb.setAttribute('aria-checked', isActive ? 'true' : 'false');
+      });
+    };
+
+    const applyModePreview = (modeValue) => {
+      themeSelect.value = modeValue;
+      document.documentElement.setAttribute('data-theme', modeValue);
+      syncModeThumbs(modeValue);
+      const opacityValue = container.querySelector('#bg-opacity-slider')?.value || s.bgOpacity || '75';
+      const selectedTheme = SettingsManager.themes.find(theme => theme.id === selectedBgTheme);
+      if (window.applyWorkspaceSurfaceOpacity) {
+        const effectiveOpacity = selectedTheme?.type === 'color' ? '100' : opacityValue;
+        window.applyWorkspaceSurfaceOpacity(effectiveOpacity, modeValue, selectedBgTheme);
+      }
+      if (window.updateWorkspaceGlassToggles) {
+        window.updateWorkspaceGlassToggles({
+          header: container.querySelector('#glass-apply-header')?.checked !== false,
+          sidebar: container.querySelector('#glass-apply-sidebar')?.checked !== false,
+          center: container.querySelector('#glass-apply-center')?.checked !== false,
+          right: container.querySelector('#glass-apply-right')?.checked !== false
+        });
+      }
+    };
+
+    modeThumbs.forEach(thumb => {
+      thumb.addEventListener('click', () => {
+        if (thumb.disabled || matToggle.checked) return;
+        applyModePreview(thumb.getAttribute('data-mode-id'));
+      });
+    });
     
     matToggle.addEventListener('change', e => {
       const enabled = !!e.target.checked;
@@ -502,6 +544,9 @@ const SettingsPage = (() => {
       if (enabled) {
         themeSelect.disabled = true;
         themeSelect.value = 'light';
+        container.querySelector('.theme-mode-picker')?.classList.add('is-disabled');
+        modeThumbs.forEach(thumb => { thumb.disabled = true; });
+        syncModeThumbs('light');
         document.getElementById('set-theme-select').parentElement.parentElement.querySelector('p')?.remove();
         const lockNotice = document.createElement('p');
         lockNotice.style.cssText = 'font-size:12px;color:var(--color-text-secondary);margin-top:6px';
@@ -509,6 +554,8 @@ const SettingsPage = (() => {
         document.getElementById('set-theme-select').parentElement.appendChild(lockNotice);
       } else {
         themeSelect.disabled = false;
+        container.querySelector('.theme-mode-picker')?.classList.remove('is-disabled');
+        modeThumbs.forEach(thumb => { thumb.disabled = false; });
         document.getElementById('set-theme-select').parentElement.querySelector('p')?.remove();
       }
       
@@ -517,6 +564,10 @@ const SettingsPage = (() => {
 
     let selectedBgTheme = s.bgTheme || 'default';
 
+    const getSelectedThemeConfig = () => (
+      SettingsManager.themes.find(theme => theme.id === selectedBgTheme) || SettingsManager.themes[0]
+    );
+
     // Thumbnail click listener
     container.querySelectorAll('.theme-thumb').forEach(thumb => {
       const tId = thumb.getAttribute('data-theme-id');
@@ -524,37 +575,105 @@ const SettingsPage = (() => {
         e.preventDefault();
         selectedBgTheme = tId;
         window.applyAppTheme(tId);
+        if (window.applyWorkspaceSurfaceOpacity) {
+          const activeThemeMode = document.getElementById('set-theme-select')?.value || s.theme || 'light';
+          const currentOpacity = container.querySelector('#bg-opacity-slider')?.value || s.bgOpacity || '75';
+          const nextTheme = SettingsManager.themes.find(theme => theme.id === tId);
+          const effectiveOpacity = nextTheme?.type === 'color' ? '100' : currentOpacity;
+          window.applyWorkspaceSurfaceOpacity(effectiveOpacity, activeThemeMode, tId);
+        }
+        if (window.syncSettingsThemeThumbs) window.syncSettingsThemeThumbs();
+        updateOpacityAvailability();
       });
       thumb.onclick = (e) => {
         e.preventDefault();
         selectedBgTheme = tId;
         window.applyAppTheme(tId);
+        if (window.applyWorkspaceSurfaceOpacity) {
+          const activeThemeMode = document.getElementById('set-theme-select')?.value || s.theme || 'light';
+          const currentOpacity = container.querySelector('#bg-opacity-slider')?.value || s.bgOpacity || '75';
+          const nextTheme = SettingsManager.themes.find(theme => theme.id === tId);
+          const effectiveOpacity = nextTheme?.type === 'color' ? '100' : currentOpacity;
+          window.applyWorkspaceSurfaceOpacity(effectiveOpacity, activeThemeMode, tId);
+        }
+        if (window.syncSettingsThemeThumbs) window.syncSettingsThemeThumbs();
+        updateOpacityAvailability();
       };
     });
 
     // Opacity slider logic
     const slider = container.querySelector('#bg-opacity-slider');
     const label = container.querySelector('#opacity-val-label');
+    const guidance = container.querySelector('#opacity-guidance-text');
+
+    const updateOpacityAvailability = () => {
+      if (!slider || !label || !guidance) return;
+
+      const themeConfig = getSelectedThemeConfig();
+      const usesFixedSurface = themeConfig?.type === 'color';
+
+      slider.disabled = usesFixedSurface;
+      slider.style.opacity = usesFixedSurface ? '0.45' : '1';
+      slider.style.cursor = usesFixedSurface ? 'not-allowed' : 'pointer';
+      label.textContent = usesFixedSurface ? 'Flat theme' : `${slider.value}%`;
+
+      if (usesFixedSurface) {
+        guidance.textContent = 'Flat workspace backgrounds use a fixed clean surface, so tint opacity is not needed here.';
+        guidance.style.color = 'var(--color-text-tertiary)';
+      } else if (Number(slider.value) < 50) {
+        guidance.textContent = 'Lower readability zone. Recommended minimum: 50%.';
+        guidance.style.color = 'var(--color-warning)';
+      } else {
+        guidance.textContent = 'Adjust how much the background image shines through your workspace cards and panels. Recommended minimum: 50%.';
+        guidance.style.color = 'var(--color-text-tertiary)';
+      }
+    };
 
     const updateOpacity = (val) => {
-      const opacity = val / 100;
-      label.textContent = `${val}%`;
+      const numericVal = Number(val);
+      const themeConfig = getSelectedThemeConfig();
+      const usesFixedSurface = themeConfig?.type === 'color';
+
+      if (usesFixedSurface) {
+        label.textContent = 'Flat theme';
+      } else {
+        label.textContent = `${val}%`;
+      }
       
-      // Support dark mode card tint matching the active theme mode!
       const activeThemeMode = document.getElementById('set-theme-select')?.value || s.theme || 'light';
-      const rgb = activeThemeMode === 'dark' ? '31, 31, 32' : '255, 255, 255';
-      document.documentElement.style.setProperty('--workspace-glass-bg', `rgba(${rgb}, ${opacity})`);
+      if (window.applyWorkspaceSurfaceOpacity) {
+        const effectiveOpacity = usesFixedSurface ? '100' : val;
+        window.applyWorkspaceSurfaceOpacity(effectiveOpacity, activeThemeMode, selectedBgTheme);
+      }
+
+      if (guidance) {
+        if (usesFixedSurface) {
+          guidance.textContent = 'Flat workspace backgrounds use a fixed clean surface, so tint opacity is not needed here.';
+          guidance.style.color = 'var(--color-text-tertiary)';
+        } else if (numericVal < 50) {
+          guidance.textContent = 'Lower readability zone. Recommended minimum: 50%.';
+          guidance.style.color = 'var(--color-warning)';
+        } else {
+          guidance.textContent = 'Adjust how much the background image shines through your workspace cards and panels. Recommended minimum: 50%.';
+          guidance.style.color = 'var(--color-text-tertiary)';
+        }
+      }
     };
 
     if (slider && label) {
       const savedOpacity = s.bgOpacity || '75';
-      slider.value = savedOpacity;
-      updateOpacity(savedOpacity);
+      const clampedOpacity = Math.max(40, Number(savedOpacity));
+      slider.value = String(clampedOpacity);
+      updateOpacity(clampedOpacity);
+      updateOpacityAvailability();
 
       slider.addEventListener('input', e => {
         updateOpacity(e.target.value);
+        updateOpacityAvailability();
       });
     }
+
+    syncModeThumbs(themeSelect.value || s.theme || 'light');
 
     // Glass section toggle handlers
     const updateToggles = () => {

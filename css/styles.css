@@ -259,6 +259,9 @@ img, svg {
   flex-direction: column;
   justify-content: flex-start;
   background-color: var(--color-bg);
+  border: none;
+  outline: none;
+  box-shadow: none;
 }
 
 
@@ -2871,9 +2874,15 @@ h1.page-title {
   --workspace-ui-border: rgba(255, 255, 255, 0.32);
   --workspace-ui-divider: rgba(255, 255, 255, 0.2);
   --workspace-ui-shadow: 0 16px 40px rgba(15, 23, 42, 0.08);
+  --workspace-shell-blur: blur(25px) saturate(150%);
   --workspace-ui-blur: blur(18px) saturate(140%);
+  --workspace-input-blur: blur(8px);
   --workspace-ui-input: rgba(255, 255, 255, 0.45);
   --workspace-ui-input-border: rgba(255, 255, 255, 0.35);
+  --workspace-text-primary: rgba(15, 23, 42, 0.96);
+  --workspace-text-secondary: rgba(71, 85, 105, 0.82);
+  --workspace-text-muted: rgba(100, 116, 139, 0.72);
+  --workspace-text-shadow: 0 1px 1px rgba(255, 255, 255, 0.16);
 }
 
 html[data-theme="dark"] {
@@ -2883,8 +2892,14 @@ html[data-theme="dark"] {
   --workspace-ui-border: rgba(148, 163, 184, 0.24);
   --workspace-ui-divider: rgba(148, 163, 184, 0.18);
   --workspace-ui-shadow: 0 16px 40px rgba(2, 6, 23, 0.28);
+  --workspace-shell-blur: blur(25px) saturate(150%);
   --workspace-ui-input: rgba(15, 23, 42, 0.4);
+  --workspace-input-blur: blur(8px);
   --workspace-ui-input-border: rgba(148, 163, 184, 0.3);
+  --workspace-text-primary: rgba(248, 250, 252, 0.96);
+  --workspace-text-secondary: rgba(226, 232, 240, 0.84);
+  --workspace-text-muted: rgba(148, 163, 184, 0.74);
+  --workspace-text-shadow: 0 1px 1px rgba(2, 6, 23, 0.28);
 }
 
 .settings-stack {
@@ -2910,12 +2925,12 @@ html[data-theme="dark"] {
 .settings-panel,
 .appearance-panel,
 .settings-preview-box {
-  background: rgba(255, 255, 255, 0.18) !important;
-  border: 1px solid rgba(255, 255, 255, 0.32) !important;
+  background: var(--workspace-ui-surface) !important;
+  border: 1px solid var(--workspace-ui-border) !important;
   border-radius: var(--radius-xl) !important;
-  box-shadow: 0 16px 40px rgba(15, 23, 42, 0.08) !important;
-  backdrop-filter: blur(18px) saturate(140%) !important;
-  -webkit-backdrop-filter: blur(18px) saturate(140%) !important;
+  box-shadow: var(--workspace-ui-shadow) !important;
+  backdrop-filter: var(--workspace-ui-blur) !important;
+  -webkit-backdrop-filter: var(--workspace-ui-blur) !important;
 }
 
 .settings-panel {
@@ -2934,9 +2949,9 @@ html[data-theme="dark"] {
 html[data-theme="dark"] .settings-panel,
 html[data-theme="dark"] .appearance-panel,
 html[data-theme="dark"] .settings-preview-box {
-  background: rgba(15, 23, 42, 0.34) !important;
-  border-color: rgba(148, 163, 184, 0.24) !important;
-  box-shadow: 0 16px 40px rgba(2, 6, 23, 0.28) !important;
+  background: var(--workspace-ui-surface) !important;
+  border-color: var(--workspace-ui-border) !important;
+  box-shadow: var(--workspace-ui-shadow) !important;
 }
 
 body.workspace-enhanced-bg main.settings-content {
@@ -3289,6 +3304,86 @@ main {
   z-index: 2;
 }
 
+.theme-mode-picker {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.theme-mode-picker.is-disabled {
+  opacity: 0.6;
+}
+
+.theme-mode-thumb {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  text-align: center;
+  transition: transform 0.2s ease;
+}
+
+.theme-mode-thumb:hover {
+  transform: translateY(-3px);
+}
+
+.theme-mode-thumb:disabled {
+  cursor: not-allowed;
+  transform: none;
+}
+
+.theme-mode-preview {
+  width: 100%;
+  height: 72px;
+  border-radius: 12px;
+  border: 2px solid transparent;
+  box-shadow: var(--shadow-sm);
+  transition: all 0.2s ease;
+  display: block;
+}
+
+.theme-mode-preview-light {
+  background: linear-gradient(180deg, #fbfbfb 0%, #fbfbfb 22%, #f3f4f6 22%, #f3f4f6 100%);
+}
+
+.theme-mode-preview-dark {
+  background: linear-gradient(180deg, #18181b 0%, #18181b 22%, #27272a 22%, #27272a 100%);
+}
+
+.theme-mode-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+}
+
+.theme-mode-thumb.active .theme-mode-preview {
+  border-color: var(--color-primary, #6366f1);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 18%, transparent);
+}
+
+.theme-mode-thumb.active::after {
+  content: '✓';
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--color-primary, #6366f1);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 10px rgba(15, 23, 42, 0.18);
+}
+
 /* Enhanced Glass Effects */
 body.workspace-enhanced-bg {
   background-attachment: fixed !important;
@@ -3305,8 +3400,8 @@ body.workspace-enhanced-bg #context-drawer,
 body.workspace-enhanced-bg main,
 body.workspace-enhanced-bg .wizard-sticky-bar {
   /* Shared Glassmorphism Spec */
-  backdrop-filter: blur(25px) saturate(150%) !important;
-  -webkit-backdrop-filter: blur(25px) saturate(150%) !important;
+  backdrop-filter: var(--workspace-shell-blur) !important;
+  -webkit-backdrop-filter: var(--workspace-shell-blur) !important;
   
   /* Shared Background Color (from Slider) */
   background-color: var(--workspace-glass-bg, rgba(255, 255, 255, 0.4)) !important;
@@ -3322,18 +3417,15 @@ body.workspace-enhanced-bg .wizard-sticky-bar {
 /* Specific borders and separators for layouts */
 body.workspace-enhanced-bg #sidebar {
   border: none !important;
-  border-right: 1px solid rgba(255, 255, 255, 0.1) !important;
 }
 
 body.workspace-enhanced-bg #context-panel,
 body.workspace-enhanced-bg #context-drawer {
   border: none !important;
-  border-left: 1px solid rgba(255, 255, 255, 0.1) !important;
 }
 
 body.workspace-enhanced-bg header#header {
   border: none !important;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
 }
 
 body.workspace-enhanced-bg .context-card,
@@ -3347,16 +3439,200 @@ body.workspace-enhanced-bg .widget-popover-menu,
 body.workspace-enhanced-bg .help-accordion,
 body.workspace-enhanced-bg #workspace,
 body.workspace-enhanced-bg .hero-section {
-  background: var(--workspace-glass-bg, rgba(255, 255, 255, 0.6)) !important;
-  backdrop-filter: blur(10px) !important;
-  border: 1px solid rgba(255, 255, 255, 0.2) !important;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05) !important;
+  background: var(--workspace-ui-surface) !important;
+  backdrop-filter: var(--workspace-ui-blur) !important;
+  -webkit-backdrop-filter: var(--workspace-ui-blur) !important;
+  border: 1px solid var(--workspace-ui-border) !important;
+  box-shadow: var(--workspace-ui-shadow) !important;
+}
+
+body.workspace-enhanced-bg #workspace {
+  background: var(--workspace-glass-bg, rgba(255, 255, 255, 0.4)) !important;
+  background-color: var(--workspace-glass-bg, rgba(255, 255, 255, 0.4)) !important;
+  backdrop-filter: var(--workspace-shell-blur) !important;
+  -webkit-backdrop-filter: var(--workspace-shell-blur) !important;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
 }
 
 /* Remove solid backgrounds from sub-containers */
 body.workspace-enhanced-bg #context-panel-body,
 body.workspace-enhanced-bg #context-drawer-body {
   background: transparent !important;
+}
+
+body.workspace-enhanced-bg .page-title,
+body.workspace-enhanced-bg .hero-greeting,
+body.workspace-enhanced-bg .review-block-title,
+body.workspace-enhanced-bg .widget-card-title,
+body.workspace-enhanced-bg .context-card-title,
+body.workspace-enhanced-bg .stat-value,
+body.workspace-enhanced-bg .watchlist-row-title,
+body.workspace-enhanced-bg .card-title,
+body.workspace-enhanced-bg .detail-section-title,
+body.workspace-enhanced-bg .detail-val,
+body.workspace-enhanced-bg .detail-key,
+body.workspace-enhanced-bg .form-label,
+body.workspace-enhanced-bg .help-accordion-title,
+body.workspace-enhanced-bg .items-table th,
+body.workspace-enhanced-bg .items-table td,
+body.workspace-enhanced-bg .widget-list-item,
+body.workspace-enhanced-bg .recent-alert-item span,
+body.workspace-enhanced-bg .db-stat-item .db-stat-value,
+body.workspace-enhanced-bg .db-stat-item .db-stat-label,
+body.workspace-enhanced-bg .context-card .context-card-title,
+body.workspace-enhanced-bg .notif-card .notif-title,
+body.workspace-enhanced-bg .record-card .record-id,
+body.workspace-enhanced-bg .record-card .record-name,
+body.workspace-enhanced-bg .stat-card .stat-value,
+body.workspace-enhanced-bg .widget-card .widget-card-title {
+  color: var(--workspace-text-primary) !important;
+  text-shadow: var(--workspace-text-shadow);
+}
+
+body.workspace-enhanced-bg .page-subtitle,
+body.workspace-enhanced-bg .hero-date,
+body.workspace-enhanced-bg .form-hint,
+body.workspace-enhanced-bg .context-card-body,
+body.workspace-enhanced-bg .stat-label,
+body.workspace-enhanced-bg .watchlist-row-subtitle,
+body.workspace-enhanced-bg .detail-row,
+body.workspace-enhanced-bg .widget-list-item span:last-child,
+body.workspace-enhanced-bg .notif-card .notif-desc,
+body.workspace-enhanced-bg .notif-card .notif-meta,
+body.workspace-enhanced-bg .recent-alert-item,
+body.workspace-enhanced-bg .db-stat-item .db-stat-meta {
+  color: var(--workspace-text-secondary) !important;
+}
+
+body.workspace-enhanced-bg .form-hint,
+body.workspace-enhanced-bg .watchlist-row-subtitle,
+body.workspace-enhanced-bg .notif-card .notif-meta,
+body.workspace-enhanced-bg .detail-key {
+  color: var(--workspace-text-muted) !important;
+}
+
+body.workspace-enhanced-bg .search-box input,
+body.workspace-enhanced-bg #mobile-search-bar .search-box {
+  background: var(--workspace-ui-surface-soft) !important;
+  border-color: var(--workspace-ui-border) !important;
+  color: var(--workspace-text-primary) !important;
+}
+
+body.workspace-enhanced-bg .search-box input::placeholder,
+body.workspace-enhanced-bg #mobile-search-bar .search-box input::placeholder {
+  color: var(--workspace-text-muted) !important;
+}
+
+body.workspace-enhanced-bg .search-box .search-icon,
+body.workspace-enhanced-bg .search-shortcut {
+  color: var(--workspace-text-secondary) !important;
+}
+
+body.workspace-enhanced-bg .search-box input:focus,
+body.workspace-enhanced-bg #mobile-search-bar .search-box:focus-within {
+  border-color: var(--color-primary) !important;
+  background: var(--workspace-ui-surface-strong) !important;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 16%, transparent) !important;
+}
+
+body.workspace-enhanced-bg .header-icon-btn {
+  color: var(--workspace-text-secondary) !important;
+}
+
+body.workspace-enhanced-bg .header-icon-btn:hover {
+  background: var(--workspace-ui-surface-soft) !important;
+  color: var(--color-primary) !important;
+}
+
+body.workspace-enhanced-bg .header-divider {
+  background: color-mix(in srgb, var(--workspace-ui-divider) 70%, var(--color-primary) 30%) !important;
+}
+
+body.workspace-enhanced-bg .user-avatar:hover {
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 20%, transparent) !important;
+}
+
+body.workspace-enhanced-bg.glass-disabled-header header#header {
+  background: var(--workspace-fallback-bg, #ffffff) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+body.workspace-enhanced-bg.glass-disabled-sidebar #sidebar {
+  background: var(--workspace-fallback-bg, #ffffff) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+body.workspace-enhanced-bg.glass-disabled-center #workspace,
+body.workspace-enhanced-bg.glass-disabled-center .stat-card,
+body.workspace-enhanced-bg.glass-disabled-center .notif-card,
+body.workspace-enhanced-bg.glass-disabled-center .inspector-card,
+body.workspace-enhanced-bg.glass-disabled-center .hero-section,
+body.workspace-enhanced-bg.glass-disabled-center .record-card,
+body.workspace-enhanced-bg.glass-disabled-center .widget-card,
+body.workspace-enhanced-bg.glass-disabled-center .adv-search-panel,
+body.workspace-enhanced-bg.glass-disabled-center .widget-popover-menu,
+body.workspace-enhanced-bg.glass-disabled-center .help-accordion,
+body.workspace-enhanced-bg.glass-disabled-center .review-block,
+body.workspace-enhanced-bg.glass-disabled-center .settings-section,
+body.workspace-enhanced-bg.glass-disabled-center .form-card,
+body.workspace-enhanced-bg.glass-disabled-center .items-table-wrap,
+body.workspace-enhanced-bg.glass-disabled-center .settings-panel,
+body.workspace-enhanced-bg.glass-disabled-center .appearance-panel,
+body.workspace-enhanced-bg.glass-disabled-center .settings-preview-box,
+body.workspace-enhanced-bg.glass-disabled-center .wizard-sticky-bar,
+body.workspace-enhanced-bg.glass-disabled-center .wizard-step-panel {
+  background: var(--workspace-fallback-bg, #ffffff) !important;
+  background-color: var(--workspace-fallback-bg, #ffffff) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border: 1px solid var(--workspace-fallback-border, #e4e4e7) !important;
+  box-shadow: none !important;
+}
+
+body.workspace-enhanced-bg.glass-disabled-center #workspace {
+  border: none !important;
+}
+
+body.workspace-enhanced-bg.glass-disabled-center #workspace.settings-view .review-block,
+body.workspace-enhanced-bg.glass-disabled-center .review-block[style*="background:transparent"],
+body.workspace-enhanced-bg.glass-disabled-center .review-block[style*="background: transparent"] {
+  background: transparent !important;
+  background-color: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+body.workspace-enhanced-bg.glass-disabled-right #context-panel,
+body.workspace-enhanced-bg.glass-disabled-right #context-drawer,
+body.workspace-enhanced-bg.glass-disabled-right .panel-header,
+body.workspace-enhanced-bg.glass-disabled-right .drawer-handle,
+body.workspace-enhanced-bg.glass-disabled-right .context-card {
+  background: var(--workspace-fallback-bg, #ffffff) !important;
+  background-color: var(--workspace-fallback-bg, #ffffff) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  box-shadow: none !important;
+}
+
+body.workspace-enhanced-bg.glass-disabled-right #context-panel,
+body.workspace-enhanced-bg.glass-disabled-right #context-drawer,
+body.workspace-enhanced-bg.glass-disabled-right .context-card {
+  border: 1px solid var(--workspace-fallback-border, #e4e4e7) !important;
+}
+
+body.workspace-enhanced-bg.glass-disabled-right .panel-header,
+body.workspace-enhanced-bg.glass-disabled-right .drawer-handle {
+  border: none !important;
 }
 
 /* Transition for smooth opacity changes */
@@ -3398,11 +3674,11 @@ body.workspace-enhanced-bg .drawer-handle,
 body.workspace-enhanced-bg .wizard-sticky-bar,
 body.workspace-enhanced-bg .form-card,
 body.workspace-enhanced-bg .wizard-step-panel {
-  background: var(--workspace-glass-bg, rgba(255, 255, 255, 0.7)) !important;
-  backdrop-filter: blur(16px) saturate(140%) !important;
-  -webkit-backdrop-filter: blur(16px) saturate(140%) !important;
-  border: 1px solid rgba(255, 255, 255, 0.3) !important;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.04) !important;
+  background: var(--workspace-ui-surface) !important;
+  backdrop-filter: var(--workspace-ui-blur) !important;
+  -webkit-backdrop-filter: var(--workspace-ui-blur) !important;
+  border: 1px solid var(--workspace-ui-border) !important;
+  box-shadow: var(--workspace-ui-shadow) !important;
   transition: background 0.3s ease, border 0.3s ease !important;
 }
 
@@ -3441,8 +3717,8 @@ body.workspace-enhanced-bg .adv-search-panel select {
   color: #1e293b !important;
   font-weight: 500 !important;
   box-shadow: none !important;
-  backdrop-filter: blur(8px) !important;
-  -webkit-backdrop-filter: blur(8px) !important;
+  backdrop-filter: var(--workspace-input-blur) !important;
+  -webkit-backdrop-filter: var(--workspace-input-blur) !important;
 }
 
 /* Adjust specific icons if they are too light */
@@ -3452,12 +3728,13 @@ body.workspace-enhanced-bg .review-block svg {
 
 /* Styling for items-table-wrap */
 .items-table-wrap {
-  background-color: rgba(255, 255, 255, 0.5) !important;
-  backdrop-filter: blur(10px) !important;
-  -webkit-backdrop-filter: blur(10px) !important;
+  background-color: var(--workspace-ui-surface) !important;
+  backdrop-filter: var(--workspace-ui-blur) !important;
+  -webkit-backdrop-filter: var(--workspace-ui-blur) !important;
   padding: 20px !important;
   border-radius: 12px !important;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 24px 10px -1px rgba(0, 0, 0, 0.05) !important;
+  border: 1px solid var(--workspace-ui-border) !important;
+  box-shadow: var(--workspace-ui-shadow) !important;
 }
 
 body.workspace-enhanced-bg .items-table th {
@@ -3479,6 +3756,89 @@ body.workspace-enhanced-bg .widget-list-item,
 body.workspace-enhanced-bg .help-accordion-title,
 body.workspace-enhanced-bg .help-accordion-content {
   background: transparent !important;
+}
+
+body.workspace-enhanced-bg .db-stat-item {
+  background: var(--workspace-ui-surface-strong) !important;
+  border: 1px solid var(--workspace-ui-divider) !important;
+  box-shadow: none !important;
+}
+
+body.workspace-enhanced-bg #context-panel-title,
+body.workspace-enhanced-bg #drawer-title,
+body.workspace-enhanced-bg .context-card-title {
+  color: var(--workspace-text-primary) !important;
+}
+
+body.workspace-enhanced-bg .context-card-title svg,
+body.workspace-enhanced-bg #context-panel-title svg,
+body.workspace-enhanced-bg #drawer-title svg,
+body.workspace-enhanced-bg .recent-alert-item svg,
+body.workspace-enhanced-bg .db-stat-item svg {
+  color: var(--color-primary) !important;
+  stroke: currentColor !important;
+}
+
+body.workspace-enhanced-bg .context-card-title {
+  letter-spacing: 0.08em !important;
+}
+
+body.workspace-enhanced-bg .db-stat-item {
+  background: color-mix(in srgb, var(--workspace-ui-surface-strong) 82%, var(--color-primary) 18%) !important;
+  border-color: color-mix(in srgb, var(--workspace-ui-divider) 72%, var(--color-primary) 28%) !important;
+}
+
+body.workspace-enhanced-bg .db-stat-item .db-stat-meta,
+body.workspace-enhanced-bg .db-stat-item .db-stat-label {
+  color: color-mix(in srgb, var(--workspace-text-secondary) 75%, var(--color-primary) 25%) !important;
+}
+
+body.workspace-enhanced-bg .db-stat-item .db-stat-value {
+  color: var(--workspace-text-primary) !important;
+}
+
+body.workspace-enhanced-bg .recent-alert-item {
+  background: transparent !important;
+  border-bottom-color: var(--workspace-ui-divider) !important;
+}
+
+body.workspace-enhanced-bg .recent-alert-item .badge,
+body.workspace-enhanced-bg .recent-alert-item [class*="badge-"] {
+  border-color: color-mix(in srgb, var(--color-primary) 24%, transparent) !important;
+}
+
+body.workspace-enhanced-bg .recent-alert-item:hover {
+  border-radius: 12px;
+}
+
+body.workspace-enhanced-bg .health-indicator {
+  background: var(--workspace-ui-surface-soft) !important;
+  border-color: var(--workspace-ui-border) !important;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+
+body.workspace-enhanced-bg .context-card .health-indicator {
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--workspace-ui-border) 70%, var(--color-primary) 30%),
+    0 0 0 3px color-mix(in srgb, var(--color-primary) 10%, transparent) !important;
+}
+
+body.workspace-enhanced-bg .urgent-highlight-row {
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+}
+
+body.workspace-enhanced-bg .urgent-secondary-row {
+  background: var(--workspace-ui-surface-soft) !important;
+  border-color: var(--workspace-ui-divider) !important;
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+}
+
+body.workspace-enhanced-bg .watchlist-row:hover,
+body.workspace-enhanced-bg .widget-list-item:hover,
+body.workspace-enhanced-bg .recent-alert-item:hover {
+  background: var(--workspace-ui-surface-soft) !important;
 }
 
 body.workspace-enhanced-bg .help-accordion-title,
@@ -3530,30 +3890,35 @@ body.workspace-enhanced-bg #workspace.settings-view .review-block {
   -webkit-backdrop-filter: none !important;
 }
 
+body.workspace-enhanced-bg #workspace.settings-view {
+  border: none !important;
+  box-shadow: none !important;
+}
+
 body.workspace-enhanced-bg #workspace.settings-view .review-block.settings-panel,
 body.workspace-enhanced-bg #workspace.settings-view .appearance-panel,
 body.workspace-enhanced-bg #workspace.settings-view .settings-preview-box {
-  background: rgba(255, 255, 255, 0.18) !important;
-  border: 1px solid rgba(255, 255, 255, 0.32) !important;
-  box-shadow: 0 16px 40px rgba(15, 23, 42, 0.08) !important;
-  backdrop-filter: blur(18px) saturate(140%) !important;
-  -webkit-backdrop-filter: blur(18px) saturate(140%) !important;
+  background: var(--workspace-ui-surface) !important;
+  border: 1px solid var(--workspace-ui-border) !important;
+  box-shadow: var(--workspace-ui-shadow) !important;
+  backdrop-filter: var(--workspace-ui-blur) !important;
+  -webkit-backdrop-filter: var(--workspace-ui-blur) !important;
 }
 
 html[data-theme="dark"] body.workspace-enhanced-bg #workspace.settings-view .review-block.settings-panel,
 html[data-theme="dark"] body.workspace-enhanced-bg #workspace.settings-view .appearance-panel,
 html[data-theme="dark"] body.workspace-enhanced-bg #workspace.settings-view .settings-preview-box {
-  background: rgba(15, 23, 42, 0.34) !important;
-  border-color: rgba(148, 163, 184, 0.24) !important;
-  box-shadow: 0 16px 40px rgba(2, 6, 23, 0.28) !important;
+  background: var(--workspace-ui-surface) !important;
+  border-color: var(--workspace-ui-border) !important;
+  box-shadow: var(--workspace-ui-shadow) !important;
 }
 
 body.workspace-enhanced-bg #workspace.settings-view .review-block input,
 body.workspace-enhanced-bg #workspace.settings-view .review-block select,
 body.workspace-enhanced-bg #workspace.settings-view .review-block textarea {
-  background: rgba(255, 255, 255, 0.45) !important;
-  border: 1px solid rgba(255, 255, 255, 0.35) !important;
+  background: var(--workspace-ui-input) !important;
+  border: 1px solid var(--workspace-ui-input-border) !important;
   box-shadow: none !important;
-  backdrop-filter: blur(8px) !important;
-  -webkit-backdrop-filter: blur(8px) !important;
+  backdrop-filter: var(--workspace-input-blur) !important;
+  -webkit-backdrop-filter: var(--workspace-input-blur) !important;
 }

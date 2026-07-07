@@ -6,7 +6,8 @@
     try {
       if (typeof SettingsManager === 'undefined') return;
       const s = SettingsManager.get();
-      const selected = (s && s.bgTheme) ? s.bgTheme : 'default';
+      const liveTheme = document.documentElement.getAttribute('data-workspace-theme');
+      const selected = liveTheme || ((s && s.bgTheme) ? s.bgTheme : 'default');
 
       document.querySelectorAll('.theme-thumb').forEach(t => {
         const id = t.getAttribute('data-theme-id');

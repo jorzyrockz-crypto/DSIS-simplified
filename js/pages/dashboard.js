@@ -69,20 +69,20 @@ const DashboardPage = (() => {
         <div class="context-card-title">Database Overview</div>
         <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 4px;">
           <div class="db-stat-item">
-            <div style="font-size:10px; color:var(--color-text-tertiary); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px">Records</div>
-            <div style="font-size:16px; font-weight:700; color:var(--color-text-primary)">${stats.total}</div>
+            <div class="db-stat-meta" style="font-size:10px; color:var(--color-text-tertiary); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px">Records</div>
+            <div class="db-stat-value" style="font-size:16px; font-weight:700; color:var(--color-text-primary)">${stats.total}</div>
           </div>
           <div class="db-stat-item">
-            <div style="font-size:10px; color:var(--color-text-tertiary); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px">Items</div>
-            <div style="font-size:16px; font-weight:700; color:var(--color-text-primary)">${stats.totalItems}</div>
+            <div class="db-stat-meta" style="font-size:10px; color:var(--color-text-tertiary); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px">Items</div>
+            <div class="db-stat-value" style="font-size:16px; font-weight:700; color:var(--color-text-primary)">${stats.totalItems}</div>
           </div>
           <div class="db-stat-item">
-            <div style="font-size:10px; color:var(--color-text-tertiary); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px">Drafts</div>
-            <div style="font-size:16px; font-weight:700; color:var(--color-text-primary)">${stats.drafts}</div>
+            <div class="db-stat-meta" style="font-size:10px; color:var(--color-text-tertiary); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px">Drafts</div>
+            <div class="db-stat-value" style="font-size:16px; font-weight:700; color:var(--color-text-primary)">${stats.drafts}</div>
           </div>
           <div class="db-stat-item">
-            <div style="font-size:10px; color:var(--color-text-tertiary); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px">Asset Value</div>
-            <div style="font-size:14px; font-weight:700; color:var(--color-text-primary)">₱${stats.totalCost.toLocaleString()}</div>
+            <div class="db-stat-meta" style="font-size:10px; color:var(--color-text-tertiary); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px">Asset Value</div>
+            <div class="db-stat-value" style="font-size:14px; font-weight:700; color:var(--color-text-primary)">₱${stats.totalCost.toLocaleString()}</div>
           </div>
         </div>
       </div>
@@ -417,7 +417,7 @@ const DashboardPage = (() => {
         } else {
           // Secondary issue (small)
           listHtml += `
-            <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; background: var(--color-surface-alt); border-radius: 8px; border: 1px solid var(--color-border-light); margin-top: 4px;">
+            <div class="urgent-secondary-row" style="display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; background: var(--color-surface-alt); border-radius: 8px; border: 1px solid var(--color-border-light); margin-top: 4px;">
               <div style="display: flex; align-items: center; gap: 14px; min-width:0; flex:1;">
                   <div style="width: 32px; height: 32px; background: var(--color-text-tertiary); color: #fff; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 10px; flex-shrink:0;">${abbr}</div>
                   <div style="min-width:0; flex:1;">
