@@ -68,6 +68,78 @@ const SettingsPage = (() => {
     try { document.documentElement.classList.toggle('material-theme', !!enabled); } catch {}
   }
 
+  function _getFullHeaderSpanState() {
+    try {
+      return localStorage.getItem('ics-exp-full-header') === 'true';
+    } catch {
+      return false;
+    }
+  }
+
+  function _setFullHeaderSpanState(val) {
+    try {
+      localStorage.setItem('ics-exp-full-header', String(val));
+    } catch {}
+  }
+
+  function _applyFullHeaderSpanState(enabled) {
+    try {
+      if (window.App && typeof window.App.setExperimentalFullHeader === 'function') {
+        window.App.setExperimentalFullHeader(enabled);
+        return;
+      }
+      document.body.classList.toggle('experimental-full-header', !!enabled);
+    } catch {}
+  }
+
+  function _getFullHeaderSpanV2State() {
+    try {
+      return localStorage.getItem('ics-exp-full-header-v2') === 'true';
+    } catch {
+      return false;
+    }
+  }
+
+  function _setFullHeaderSpanV2State(val) {
+    try {
+      localStorage.setItem('ics-exp-full-header-v2', String(val));
+    } catch {}
+  }
+
+  function _applyFullHeaderSpanV2State(enabled) {
+    try {
+      if (window.App && typeof window.App.setExperimentalFullHeaderV2 === 'function') {
+        window.App.setExperimentalFullHeaderV2(enabled);
+        return;
+      }
+      document.body.classList.toggle('experimental-full-header-v2', !!enabled);
+    } catch {}
+  }
+
+  function _getDashboardExperimentState() {
+    try {
+      return localStorage.getItem('ics-exp-dashboard-v2') === 'true';
+    } catch {
+      return false;
+    }
+  }
+
+  function _setDashboardExperimentState(val) {
+    try {
+      localStorage.setItem('ics-exp-dashboard-v2', String(val));
+    } catch {}
+  }
+
+  function _applyDashboardExperimentState(enabled) {
+    try {
+      if (window.App && typeof window.App.setExperimentalDashboardV2 === 'function') {
+        window.App.setExperimentalDashboardV2(enabled);
+        return;
+      }
+      document.body.classList.toggle('experimental-dashboard-v2', !!enabled);
+    } catch {}
+  }
+
   function _getReleaseItemMeta(type) {
     const normalized = String(type || '').toLowerCase();
 
@@ -1266,6 +1338,45 @@ const SettingsPage = (() => {
               </label>
             </div>
           </div>
+
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--color-border-light); background: transparent;">
+            <div style="flex: 1">
+              <div style="font-size: 14px; font-weight: 500; color: var(--color-text-primary)">Top Navigation Across App</div>
+              <p style="font-size: 12px; color: #71717a; margin: 4px 0 0 0">Extends the top bar across the sidebar, workspace, and right panel so every surface sits below one shared header.</p>
+            </div>
+            <div style="flex-shrink:0; display:flex; align-items:center; gap:8px">
+              <label style="display:flex; align-items:center; gap:8px; cursor:pointer">
+                <input type="checkbox" id="dev-full-header-toggle"${_getFullHeaderSpanState() ? ' checked' : ''}>
+                <span style="font-size:13px">Enable</span>
+              </label>
+            </div>
+          </div>
+
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--color-border-light); background: transparent;">
+            <div style="flex: 1">
+              <div style="font-size: 14px; font-weight: 500; color: var(--color-text-primary)">Top Navigation Across App v2</div>
+              <p style="font-size: 12px; color: #71717a; margin: 4px 0 0 0">Polishes the shared top bar with stronger spacing, grouped controls, and a more intentional full-width shell treatment.</p>
+            </div>
+            <div style="flex-shrink:0; display:flex; align-items:center; gap:8px">
+              <label style="display:flex; align-items:center; gap:8px; cursor:pointer">
+                <input type="checkbox" id="dev-full-header-v2-toggle"${_getFullHeaderSpanV2State() ? ' checked' : ''}>
+                <span style="font-size:13px">Enable</span>
+              </label>
+            </div>
+          </div>
+
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--color-border-light); background: transparent;">
+            <div style="flex: 1">
+              <div style="font-size: 14px; font-weight: 500; color: var(--color-text-primary)">Dashboard Landing Page v2</div>
+              <p style="font-size: 12px; color: #71717a; margin: 4px 0 0 0">Keeps the dashboard redesign isolated under experiment mode so we can refine the landing experience safely.</p>
+            </div>
+            <div style="flex-shrink:0; display:flex; align-items:center; gap:8px">
+              <label style="display:flex; align-items:center; gap:8px; cursor:pointer">
+                <input type="checkbox" id="dev-dashboard-v2-toggle"${_getDashboardExperimentState() ? ' checked' : ''}>
+                <span style="font-size:13px">Enable</span>
+              </label>
+            </div>
+          </div>
         </div>
 
         <!-- State Inspector Card -->
@@ -1286,6 +1397,9 @@ const SettingsPage = (() => {
 
     // Ensure material theme is applied when rendering developer tab
     _applyMaterialTheme(_getMaterialThemeState());
+    _applyFullHeaderSpanState(_getFullHeaderSpanState());
+    _applyFullHeaderSpanV2State(_getFullHeaderSpanV2State());
+    _applyDashboardExperimentState(_getDashboardExperimentState());
 
     // Wire material checkbox
     const matCheckbox = container.querySelector('#dev-mat-toggle');
@@ -1295,6 +1409,36 @@ const SettingsPage = (() => {
         _setMaterialThemeState(enabled);
         _applyMaterialTheme(enabled);
         UIKit.toast(`Material theme ${enabled ? 'enabled' : 'disabled'}.`, 'info');
+      });
+    }
+
+    const fullHeaderCheckbox = container.querySelector('#dev-full-header-toggle');
+    if (fullHeaderCheckbox) {
+      fullHeaderCheckbox.addEventListener('change', e => {
+        const enabled = !!e.target.checked;
+        _setFullHeaderSpanState(enabled);
+        _applyFullHeaderSpanState(enabled);
+        UIKit.toast(`Shared top navigation ${enabled ? 'enabled' : 'disabled'}.`, 'info');
+      });
+    }
+
+    const fullHeaderV2Checkbox = container.querySelector('#dev-full-header-v2-toggle');
+    if (fullHeaderV2Checkbox) {
+      fullHeaderV2Checkbox.addEventListener('change', e => {
+        const enabled = !!e.target.checked;
+        _setFullHeaderSpanV2State(enabled);
+        _applyFullHeaderSpanV2State(enabled);
+        UIKit.toast(`Shared top navigation v2 ${enabled ? 'enabled' : 'disabled'}.`, 'info');
+      });
+    }
+
+    const dashboardV2Checkbox = container.querySelector('#dev-dashboard-v2-toggle');
+    if (dashboardV2Checkbox) {
+      dashboardV2Checkbox.addEventListener('change', e => {
+        const enabled = !!e.target.checked;
+        _setDashboardExperimentState(enabled);
+        _applyDashboardExperimentState(enabled);
+        UIKit.toast(`Dashboard landing page v2 ${enabled ? 'enabled' : 'disabled'}.`, 'info');
       });
     }
 

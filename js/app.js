@@ -42,6 +42,65 @@ const PAGE_REGISTRY = {
    DOM Element References (populated after DOMContentLoaded)
    ============================================================ */
 const DOM = {};
+const EXPERIMENTAL_FULL_HEADER_KEY = 'ics-exp-full-header';
+const EXPERIMENTAL_FULL_HEADER_V2_KEY = 'ics-exp-full-header-v2';
+const EXPERIMENTAL_DASHBOARD_V2_KEY = 'ics-exp-dashboard-v2';
+
+/* ============================================================
+   Experimental Shell Modes
+   ============================================================ */
+function isExperimentalFullHeaderEnabled() {
+  try {
+    return localStorage.getItem(EXPERIMENTAL_FULL_HEADER_KEY) === 'true';
+  } catch {
+    return false;
+  }
+}
+
+function setExperimentalFullHeader(enabled) {
+  const isEnabled = !!enabled;
+  if (!DOM.app || !DOM.header || !DOM.mainContent) return;
+
+  const mobileSearchBar = DOM.mobileSearchBar || document.getElementById('mobile-search-bar');
+
+  if (isEnabled) {
+    if (DOM.header.parentElement !== DOM.app) {
+      DOM.app.insertBefore(DOM.header, DOM.app.firstChild);
+    }
+  } else if (DOM.header.parentElement !== DOM.mainContent) {
+    if (mobileSearchBar && mobileSearchBar.parentElement === DOM.mainContent) {
+      DOM.mainContent.insertBefore(DOM.header, mobileSearchBar);
+    } else {
+      DOM.mainContent.insertBefore(DOM.header, DOM.mainContent.firstChild);
+    }
+  }
+
+  document.body.classList.toggle('experimental-full-header', isEnabled);
+}
+
+function isExperimentalFullHeaderV2Enabled() {
+  try {
+    return localStorage.getItem(EXPERIMENTAL_FULL_HEADER_V2_KEY) === 'true';
+  } catch {
+    return false;
+  }
+}
+
+function setExperimentalFullHeaderV2(enabled) {
+  document.body.classList.toggle('experimental-full-header-v2', !!enabled);
+}
+
+function isExperimentalDashboardV2Enabled() {
+  try {
+    return localStorage.getItem(EXPERIMENTAL_DASHBOARD_V2_KEY) === 'true';
+  } catch {
+    return false;
+  }
+}
+
+function setExperimentalDashboardV2(enabled) {
+  document.body.classList.toggle('experimental-dashboard-v2', !!enabled);
+}
 
 /* ============================================================
    Sidebar Builder
@@ -681,7 +740,10 @@ function bootstrap() {
 
   // Collect DOM references
   DOM.sidebar       = document.getElementById('sidebar');
+  DOM.app           = document.getElementById('app');
   DOM.header        = document.getElementById('header');
+  DOM.mainContent   = document.getElementById('main-content');
+  DOM.mobileSearchBar = document.getElementById('mobile-search-bar');
   DOM.workspace     = document.getElementById('workspace');
   DOM.contextPanel  = document.getElementById('context-panel');
   DOM.contextDrawer = document.getElementById('context-drawer');
@@ -704,6 +766,9 @@ function bootstrap() {
   // Restore persisted sidebar & context panel states
   restoreSidebarState();
   restoreContextPanelState();
+  setExperimentalFullHeader(isExperimentalFullHeaderEnabled());
+  setExperimentalFullHeaderV2(isExperimentalFullHeaderV2Enabled());
+  setExperimentalDashboardV2(isExperimentalDashboardV2Enabled());
 
   // Initialize context panel & drawer content sync
   initContextSync();
@@ -804,9 +869,9 @@ function bootstrap() {
     }
   });
 
-  // Phase 2: Initialize database, seed demo data, then start router
+  // Phase 2: Initialize database, then start router.
+  // Sample/demo data is now loaded only from Settings > Developer Panel > Database Operations.
   DB.open()
-    .then(() => RecordService.seedDemoData())
     .then(async () => {
       // Phase 5: Initialize services
       CommandPalette.init();
@@ -878,7 +943,10 @@ window.App = {
   },
   openContextDrawer,
   closeContextDrawer,
-  expandContextPanel
+  expandContextPanel,
+  setExperimentalFullHeader,
+  setExperimentalFullHeaderV2,
+  setExperimentalDashboardV2
 };
 
 function wireHeaderSearch(searchEl, sug) {

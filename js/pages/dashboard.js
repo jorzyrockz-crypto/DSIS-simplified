@@ -190,6 +190,8 @@ const DashboardPage = (() => {
      ---------------------------------------------------------- */
   async function render(workspace, contextBody) {
     workspace.innerHTML = '';
+    const dashboardV2 = document.body.classList.contains('experimental-dashboard-v2');
+    workspace.classList.toggle('dashboard-experimental-v2', dashboardV2);
 
     // Load DB records
     try {
@@ -228,6 +230,44 @@ const DashboardPage = (() => {
         </div>
       </div>
     `;
+    if (dashboardV2) {
+      hero.classList.add('dashboard-hero-v2');
+      hero.innerHTML = `
+        <div class="dashboard-landing-copy">
+          <div class="dashboard-landing-kicker">Workspace dashboard</div>
+          <h1 class="hero-greeting">${greeting}</h1>
+          <p class="hero-date">${dayStr} · ${timeStr}</p>
+          <div class="dashboard-focus-strip" aria-label="Dashboard focus summary">
+            <div class="dashboard-focus-item">
+              <span class="dashboard-focus-label">Needs attention</span>
+              <strong id="dash-focus-attention">Checking...</strong>
+            </div>
+            <div class="dashboard-focus-item">
+              <span class="dashboard-focus-label">Healthy assets</span>
+              <strong id="dash-focus-healthy">Checking...</strong>
+            </div>
+            <div class="dashboard-focus-item">
+              <span class="dashboard-focus-label">Ready records</span>
+              <strong id="dash-focus-records">Checking...</strong>
+            </div>
+          </div>
+        </div>
+        <div class="dashboard-landing-actions">
+          <button class="btn btn-primary" id="dash-hero-new-btn">
+            ${Components.icon('newics')}
+            <span>New ICS Record</span>
+          </button>
+          <button class="btn btn-secondary" id="dash-hero-records-btn">
+            ${Components.icon('records')}
+            <span>Browse Records</span>
+          </button>
+          <button class="btn btn-ghost" id="dash-hero-customize-btn">
+            ${Components.icon('settings')}
+            <span>Customize</span>
+          </button>
+        </div>
+      `;
+    }
     workspace.appendChild(hero);
 
     // Stats Grid
@@ -244,6 +284,7 @@ const DashboardPage = (() => {
 
     // Wire primary buttons
     document.getElementById('dash-hero-new-btn')?.addEventListener('click', () => Router.navigate('#new'));
+    document.getElementById('dash-hero-records-btn')?.addEventListener('click', () => Router.navigate('#records'));
     document.getElementById('dash-hero-customize-btn')?.addEventListener('click', () => {
       _showCustomizationDialog(workspace);
     });
@@ -279,6 +320,14 @@ const DashboardPage = (() => {
 
       // Sort watchlist by days remaining
       watchlistItems.sort((a, b) => a.rul.daysRemaining - b.rul.daysRemaining);
+      if (dashboardV2) {
+        const activeRecords = _allRecords.filter(r => r.status !== 'archived' && r.status !== 'cancelled').length;
+        const attentionCount = expiredAssets + approachingAssets;
+        const attentionText = attentionCount > 0 ? `${attentionCount} to review` : 'All clear';
+        document.getElementById('dash-focus-attention').textContent = attentionText;
+        document.getElementById('dash-focus-healthy').textContent = `${healthyAssets} stable`;
+        document.getElementById('dash-focus-records').textContent = `${activeRecords} active`;
+      }
 
       // Set grid columns
       if (_customConfig.columns === '2') {

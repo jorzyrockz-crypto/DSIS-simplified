@@ -16,6 +16,31 @@
 window.LIVE_CHANGE_LOG_DATA = [
   {
     "version": "In Progress",
+    "buildDate": "2026-07-08",
+    "dateLabel": "July 9, 2026",
+    "current": false,
+    "live": true,
+    "items": [
+      {
+        "type": "UX Enhancement",
+        "text": "Added experimental full-width top navigation and v2 header styling toggles."
+      },
+      {
+        "type": "UX Enhancement",
+        "text": "Added an experimental Dashboard Landing Page v2 with a calmer landing layout and focus summary."
+      },
+      {
+        "type": "Feature",
+        "text": "Added persistent project notes for product and UI design decisions."
+      },
+      {
+        "type": "Fix",
+        "text": "Stopped demo data from loading automatically on app startup so sample data is only loaded from Developer database operations."
+      }
+    ]
+  },
+  {
+    "version": "In Progress",
     "buildDate": "2026-07-07",
     "dateLabel": "July 8, 2026",
     "current": false,
